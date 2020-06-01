@@ -97,10 +97,12 @@ const Anet = props => {
     // TODO remove accept.js when they leave this
     useEffect(() => {
         if (!anetActive) {
-            console.log("load accept.js");
-            // TODO update to use either sandbox or prod
-            // loadScript('https://js.authorize.net/v1/Accept.js');
-            loadScript('https://jstest.authorize.net/v1/Accept.js');
+            const version = document.getElementById('minicart').getAttribute("data-nav");
+            if (version == "production") {
+                loadScript('https://js.authorize.net/v1/Accept.js');
+            } else {
+                loadScript('https://jstest.authorize.net/v1/Accept.js');
+            }
             return;
         }
     }, [anetActive, props.accept]);
