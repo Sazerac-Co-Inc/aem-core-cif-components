@@ -70,9 +70,14 @@ const EditableForm = props => {
 
     const handleSubmitAddressForm = async formValues => {
         cartDispatch({ type: 'beginLoading' });
-        await (setShippingAddressesOnCart({ variables: { cartId: cartId, countryCode: 'US', ...formValues } }));
-        await (getCartDetails({ cartDetailsQuery, dispatch: cartDispatch, cartId }));
-        cartDispatch({ type: 'endLoading' });
+        try {
+            await (setShippingAddressesOnCart({ variables: { cartId: cartId, countryCode: 'US', ...formValues } }));
+            await (getCartDetails({ cartDetailsQuery, dispatch: cartDispatch, cartId }));
+        } catch (err) {
+            cartDispatch({ type: 'error', error: err.toString() });
+        } finally {
+            cartDispatch({ type: 'endLoading' });
+        }
 
         if (!isSignedIn) {
             setGuestEmailOnCart({ variables: { cartId: cartId, email: formValues.email } });
@@ -163,9 +168,14 @@ const EditableForm = props => {
 
     const handleSubmitShippingForm = async formValues => {
         cartDispatch({ type: 'beginLoading' });
-        await (setShippingMethodsOnCart({ variables: { cartId: cartId, ...formValues.shippingMethod } }));
-        await (getCartDetails({ cartDetailsQuery, dispatch: cartDispatch, cartId }));
-        cartDispatch({ type: 'endLoading' });
+        try {
+            await (setShippingMethodsOnCart({ variables: { cartId: cartId, ...formValues.shippingMethod } }));
+            await (getCartDetails({ cartDetailsQuery, dispatch: cartDispatch, cartId }));
+        } catch (err) {
+            cartDispatch({ type: 'error', error: err.toString() });
+        } finally {
+            cartDispatch({ type: 'endLoading' });
+        }
     }
 
     if (data && (isSignedIn || guestEmailResult)) {
