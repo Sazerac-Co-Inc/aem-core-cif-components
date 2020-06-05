@@ -16,6 +16,7 @@ import { Form } from 'informed';
 import { array, bool, func, object, shape, string } from 'prop-types';
 import { useTranslation } from 'react-i18next';
 
+import { useUserContext } from '../../context/UserContext';
 import Button from '../Button';
 import classes from './addressForm.css';
 import { validateEmail, validatePhoneUS, validateZip, isRequired, hasLengthExactly, validateRegionCode } from '../../utils/formValidators';
@@ -27,9 +28,30 @@ const fields = ['city', 'email', 'firstname', 'lastname', 'postcode', 'region_co
 
 const AddressForm = props => {
     const [submitting, setIsSubmitting] = useState(false);
+    const [{ currentUser }] = useUserContext();
     const { cancel, countries, isAddressInvalid, invalidAddressMessage, initialValues, submit } = props;
     const validationMessage = isAddressInvalid ? invalidAddressMessage : null;
     const [t] = useTranslation(['checkout', 'common']);
+
+    const address = cleanAddress();
+    // get address from current user since initialValues doesn't always get user address
+    function cleanAddress() {
+        let defaultShipping = currentUser.addresses.find(isDefaultShipping);
+        return {
+            city: defaultShipping.city,
+            email: currentUser.email,
+            firstname: defaultShipping.firstname,
+            lastname: defaultShipping.lastname,
+            postcode: defaultShipping.postcode,
+            region_code: defaultShipping.region.region_code,
+            street0: defaultShipping.street[0],
+            telephone: defaultShipping.telephone
+        }
+    }
+
+    function isDefaultShipping(addresses) {
+        return addresses.default_shipping === true;
+    }
 
     const values = useMemo(
         () =>
@@ -57,7 +79,7 @@ const AddressForm = props => {
     );
 
     return (
-        <Form className={classes.root} initialValues={values} onSubmit={handleSubmit}>
+        <Form className={classes.root} initialValues={initialValues ? values : address} onSubmit={handleSubmit}>
             <div className={classes.body}>
                 <h2 className={classes.heading}>Shipping Address</h2>
                 <div className={classes.firstname}>
