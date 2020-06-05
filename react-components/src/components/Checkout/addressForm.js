@@ -28,7 +28,7 @@ const fields = ['city', 'email', 'firstname', 'lastname', 'postcode', 'region_co
 
 const AddressForm = props => {
     const [submitting, setIsSubmitting] = useState(false);
-    const [{ currentUser }] = useUserContext();
+    const [{ currentUser, isSignedIn }] = useUserContext();
     const { cancel, countries, isAddressInvalid, invalidAddressMessage, initialValues, submit } = props;
     const validationMessage = isAddressInvalid ? invalidAddressMessage : null;
     const [t] = useTranslation(['checkout', 'common']);
@@ -36,17 +36,32 @@ const AddressForm = props => {
     const address = cleanAddress();
     // get address from current user since initialValues doesn't always get user address
     function cleanAddress() {
-        let defaultShipping = currentUser.addresses.find(isDefaultShipping);
-        return {
-            city: defaultShipping.city,
-            email: currentUser.email,
-            firstname: defaultShipping.firstname,
-            lastname: defaultShipping.lastname,
-            postcode: defaultShipping.postcode,
-            region_code: defaultShipping.region.region_code,
-            street0: defaultShipping.street[0],
-            telephone: defaultShipping.telephone
+        if (isSignedIn) {
+            let defaultShipping = currentUser.addresses.find(isDefaultShipping);
+            return {
+                city: defaultShipping.city,
+                email: currentUser.email,
+                firstname: defaultShipping.firstname,
+                lastname: defaultShipping.lastname,
+                postcode: defaultShipping.postcode,
+                region_code: defaultShipping.region.region_code,
+                street0: defaultShipping.street[0],
+                telephone: defaultShipping.telephone
+            }
+        } else {
+            return {
+                city: "",
+                email: "",
+                firstname: "",
+                lastname: "",
+                postcode: "",
+                region_code: "",
+                street0: "",
+                telephone: ""
+            }
+
         }
+
     }
 
     function isDefaultShipping(addresses) {
