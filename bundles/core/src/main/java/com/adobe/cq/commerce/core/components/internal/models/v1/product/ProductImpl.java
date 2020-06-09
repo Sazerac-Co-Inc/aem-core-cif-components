@@ -15,6 +15,7 @@
 package com.adobe.cq.commerce.core.components.internal.models.v1.product;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -152,6 +153,17 @@ public class ProductImpl implements Product {
         return productRetriever.fetchProduct().getName();
     }
 
+    public String getDrizlyUrl() {
+        String url = productRetriever.fetchProduct().get("external_alcohol_product_ref").toString();
+        // Take out extra quotes that are coming over
+        if (url.startsWith("\"") && url.endsWith("\"")) {
+            int length = url.length() - 2;
+            url = url.substring(1, length);
+            return validateUrl(url);
+        }
+        return validateUrl(url);
+    }
+
     @Override
     public String getDescription() {
         return safeDescription(productRetriever.fetchProduct());
@@ -180,6 +192,18 @@ public class ProductImpl implements Product {
     @Override
     public Boolean getInStock() {
         return ProductStockStatus.IN_STOCK.equals(productRetriever.fetchProduct().getStockStatus());
+    }
+
+    /* Returns url if is valid */
+    public static String validateUrl(String url) {
+        try {
+            new URL(url).toURI();
+            return url;
+        }
+
+        catch (Exception e) {
+            return null;
+        }
     }
 
     @Override

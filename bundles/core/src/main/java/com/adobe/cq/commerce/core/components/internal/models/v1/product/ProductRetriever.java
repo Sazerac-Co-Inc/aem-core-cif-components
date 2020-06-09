@@ -114,6 +114,7 @@ class ProductRetriever extends AbstractProductRetriever {
                 .image(i -> i.label().url())
                 .thumbnail(t -> t.label().url())
                 .urlKey()
+                .addCustomSimpleField("external_alcohol_product_ref")
                 .stockStatus()
                 .priceRange(r -> r
                     .minimumPrice(generatePriceQuery()))
