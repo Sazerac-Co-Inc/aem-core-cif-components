@@ -208,6 +208,12 @@ const UserContextProvider = props => {
             const { data: customerData } = await fetchCustomerDetails({ fetchPolicy: 'no-cache' });
             const { data: orderData } = await fetchCustomerOrders({ fetchPolicy: 'no-cache' });
             dispatch({ type: 'setUserDetails', userDetails: customerData.customer, userOrders: orderData.customerOrders });
+            // event for datalayer
+            const customerDetailsEvent = new CustomEvent('sazerac.cif.customer-details', {
+                bubbles: true,
+                detail: { event: 'sazerac.cif.customer-details', cart: customerData }
+            });
+            document.dispatchEvent(customerDetailsEvent);
         } catch (error) {
             dispatch({ type: 'error', error });
         }
