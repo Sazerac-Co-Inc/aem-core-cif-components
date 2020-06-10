@@ -73,8 +73,20 @@ export const useSignin = () => {
             //4. set the cart id in the cookie
             setCartCookie(mergedCartId);
             setCustomerCart(mergedCartId);
+            //5. event for datalayer
+            const signInEvent = new CustomEvent('sazerac.cif.sign-in', {
+                bubbles: true,
+                detail: { event: 'sazerac.cif.sign-in', userId: email }
+            });
+            document.dispatchEvent(signInEvent);
         } catch (e) {
             setError(e);
+            // event for datalayer
+            const signInErrorEvent = new CustomEvent('sazerac.cif.sign-in-error', {
+                bubbles: true,
+                detail: { event: 'sazerac.cif.sign-in-error', error: e }
+            });
+            document.dispatchEvent(signInErrorEvent);
         }
         setInProgress(false);
     };

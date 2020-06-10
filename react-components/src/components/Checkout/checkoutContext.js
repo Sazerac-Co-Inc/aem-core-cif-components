@@ -32,6 +32,12 @@ export const initialCheckoutState = {
 export const checkoutReducer = (state, action) => {
     switch (action.type) {
         case 'beginCheckout':
+            // event for datalayer
+            const beginCheckoutEvent = new CustomEvent('sazerac.cif.begin-checkout', {
+                bubbles: true,
+                detail: { event: 'sazerac.cif.begin-checkout' }
+            });
+            document.dispatchEvent(beginCheckoutEvent);
             return {
                 ...state,
                 flowState: 'form'

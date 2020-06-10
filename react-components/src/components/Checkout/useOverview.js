@@ -38,7 +38,12 @@ export default () => {
         try {
             const { data } = await placeOrder({ variables: { cartId } });
             checkoutDispatch({ type: 'placeOrder', order: data.placeOrder.order });
-
+            // event for datalayer
+            const placeOrderEvent = new CustomEvent('sazerac.cif.place-order', {
+                bubbles: true,
+                detail: { event: 'sazerac.cif.place-order', cart: data }
+            });
+            document.dispatchEvent(placeOrderEvent);
             // if user is signed in reset the cart
             if (isSignedIn) {
                 resetCustomerCart(fetchCustomerCartQuery);

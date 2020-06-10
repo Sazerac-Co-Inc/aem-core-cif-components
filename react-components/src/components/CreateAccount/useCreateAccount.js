@@ -35,8 +35,20 @@ export default () => {
             });
             dispatch({ type: 'postCreateAccount', accountEmail: email });
             showAccountCreated();
+            // event for datalayer
+            const createAccountEvent = new CustomEvent('sazerac.cif.create-account', {
+                bubbles: true,
+                detail: { event: 'sazerac.cif.create-account' }
+            });
+            document.dispatchEvent(createAccountEvent);
         } catch (error) {
             dispatch({ type: 'createAccountError', error });
+            // event for datalayer
+            const createAccountErrorEvent = new CustomEvent('sazerac.cif.create-account-error', {
+                bubbles: true,
+                detail: { event: 'sazerac.cif.create-account-error', error: error }
+            });
+            document.dispatchEvent(createAccountErrorEvent);
         }
     };
 
