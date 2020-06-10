@@ -58,6 +58,14 @@ const MiniCart = () => {
     });
     useEventListener(document, 'aem.cif.add-to-cart', addItem);
 
+
+    // event for datalayer
+    const openCartEvent = new CustomEvent('sazerac.cif.open-cart', {
+        bubbles: true,
+        detail: { event: 'sazerac.cif.open-cart' }
+    });
+    document.dispatchEvent(openCartEvent);
+
     const rootClass = isOpen ? classes.root_open : classes.root;
     const isEmpty = cart && Object.entries(cart).length > 0 ? cart.items.length === 0 : true;
     const showFooter = !(isLoading || isEmpty || isEditing || errorMessage) || flowState === 'receipt';
