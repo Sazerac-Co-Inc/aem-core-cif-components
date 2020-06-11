@@ -39,12 +39,6 @@ export const reducerFactory = setCartCookie => {
                     isOpen: false
                 };
             case 'open':
-                // event for datalayer
-                const openCartEvent = new CustomEvent('sazerac.cif.open-cart', {
-                    bubbles: true,
-                    detail: { event: 'sazerac.cif.open-cart' }
-                });
-                document.dispatchEvent(openCartEvent);
                 return {
                     ...state,
                     isOpen: true
