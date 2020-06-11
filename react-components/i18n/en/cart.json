@@ -1,10 +1,10 @@
 {
-  "shopping-cart": "Shopping Cart",
+  "shopping-cart": "Your Cart",
   "total": "Cart Total:",
   "itemsWithCount": "{{count}} items",
   "itemsWithCount_plural": "{{count}} items",
   "new-total": "New Cart Total:",
-  "no-items": "There are no items in your shopping cart",
+  "no-items": "There are no items in your cart",
   "continue-shopping": "Continue Shopping",
   "fetching-data": "Loading...",
   "enter-coupon": "Enter your code",
