@@ -30,6 +30,7 @@ const Header = () => {
                     dispatch({ type: 'close' });
                 }}>
                 <CloseIcon />
+				<span className='sr-only'>Close mini cart</span>
             </button>
         </div>
     );
