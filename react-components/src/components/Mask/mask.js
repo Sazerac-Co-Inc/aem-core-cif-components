@@ -27,8 +27,9 @@ const Mask = () => {
             className={className}
             onClick={() => {
                 dispatch({ type: 'close' });
-            }}
-        />
+            }}>
+		<span className='sr-only'>Close mini cart</span>
+		</button>
     );
 };
 
