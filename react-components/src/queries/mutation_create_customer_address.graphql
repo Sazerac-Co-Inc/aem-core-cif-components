@@ -5,7 +5,9 @@ mutation (
     $firstname: String!
     $lastname: String!
     $postcode: String
+    $region: String!
     $region_code: String!
+    $region_id: Int!
     $street: [String]!
     $telephone: String!
     $default_billing: Boolean!
@@ -19,7 +21,9 @@ mutation (
             lastname: $lastname
             postcode: $postcode
             region: {
+                region: $region
                 region_code: $region_code
+                region_id: $region_id
             }
             street: $street
             telephone: $telephone
