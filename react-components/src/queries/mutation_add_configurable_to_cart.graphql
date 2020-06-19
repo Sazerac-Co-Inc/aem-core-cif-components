@@ -1,0 +1,19 @@
+mutation($cartId: String!, $cartItems: [SimpleProductCartItemInput]!) {
+    addConfigurableProductsToCart(input: { cart_id: $cartId, cart_items: $cartItems }) {
+        cart {
+            items {
+                id
+                quantity
+                product {
+                    name
+                    sku
+                }
+                ... on ConfigurableCartItem {
+                    configurable_options {
+                        option_label
+                    }
+                }
+            }
+        }
+    }
+}

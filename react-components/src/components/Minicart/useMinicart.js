@@ -21,7 +21,8 @@ export default ({ queries }) => {
         addToCartMutation,
         cartDetailsQuery,
         addVirtualItemMutation,
-        addSimpleAndVirtualItemMutation
+        addSimpleAndVirtualItemMutation,
+        addConfigurableItemMutation
     } = queries;
 
     const [{ cartId, cart, isOpen, isLoading, isEditing, errorMessage }, dispatch] = useCartState();
@@ -47,12 +48,33 @@ export default ({ queries }) => {
 
         let physicalCartItems = event.detail.filter(item => !item.virtual).map(mapper);
         let virtualCartItems = event.detail.filter(item => item.virtual).map(mapper);
+        let parentSkuEl = document.getElementById('parentSku');
+        let configurableCartItem = null;
 
+        if (parentSkuEl) {
+            let parentSku = parentSkuEl.getAttribute('data-parent-sku');
+            if (physicalCartItems.length > 0) {
+                configurableCartItem = {
+                    cart_items: [
+                        {
+                            parent_sku: parentSku,
+                            data: {
+                                quantity: physicalCartItems[0].data.quantity,
+                                sku: physicalCartItems[0].data.sku
+                            }
+                        }
+                    ]
+
+                }
+            }
+        }
         dispatch({ type: 'open' });
         dispatch({ type: 'beginLoading' });
 
         let addItemFn = addToCartMutation;
-        if (physicalCartItems.length > 0 && virtualCartItems.length > 0) {
+        if (parentSkuEl && physicalCartItems.length > 0 && physicalCartItems.length < 2) {
+            addItemFn = addConfigurableItemMutation;
+        } else if (physicalCartItems.length > 0 && virtualCartItems.length > 0) {
             addItemFn = addSimpleAndVirtualItemMutation;
         } else if (virtualCartItems.length > 0) {
             addItemFn = addVirtualItemMutation;
@@ -66,7 +88,8 @@ export default ({ queries }) => {
             cartId,
             dispatch,
             physicalCartItems,
-            virtualCartItems
+            virtualCartItems,
+            configurableCartItem
         });
         dispatch({ type: 'endLoading' });
     };
