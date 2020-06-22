@@ -22,13 +22,22 @@ import { CheckoutProvider } from '../Checkout';
 import UserContextProvider from '../../context/UserContext';
 import NavigationContextProvider from '../../context/NavigationContext';
 import { checkCookie, cookieValue } from '../../utils/cookieUtils';
+import { IntrospectionFragmentMatcher, InMemoryCache } from 'apollo-cache-inmemory';
+import introspectionQueryResultData from './fragmentTypes.json';
 
 const App = props => {
     const { uri, storeView = 'default' } = props;
 
+    const fragmentMatcher = new IntrospectionFragmentMatcher({
+        introspectionQueryResultData
+    });
+
+    const cache = new InMemoryCache({ fragmentMatcher });
+
     const client = new ApolloClient({
         uri,
         headers: { Store: storeView },
+        cache,
         request: operation => {
             let token = checkCookie('cif.userToken') ? cookieValue('cif.userToken') : '';
             if (token.length > 0) {

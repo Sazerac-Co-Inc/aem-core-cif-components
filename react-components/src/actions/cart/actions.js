@@ -44,11 +44,11 @@ export const addItemToCart = async payload => {
         }
 
         let variables = { cartId, cartItems: physicalCartItems };
-        if (configurableCartItem.length > 0) {
-            variables = { cartId, configurableCartItem };
-        } else if (physicalCartItems.length > 0 && virtualCartItems.length > 0) {
+        if (configurableCartItem && configurableCartItem.length > 0) {
+            variables = { cartId, cartItems: configurableCartItem };
+        } else if (physicalCartItems.length > 0 && virtualCartItems.length > 0 && configurableCartItem.length < 1) {
             variables = { cartId, virtualCartItems, simpleCartItems: physicalCartItems };
-        } else if (virtualCartItems.length > 0) {
+        } else if (virtualCartItems.length > 0 && configurableCartItem.length < 1) {
             variables = { cartId, cartItems: virtualCartItems };
         }
 

@@ -54,18 +54,16 @@ export default ({ queries }) => {
         if (parentSkuEl) {
             let parentSku = parentSkuEl.getAttribute('data-parent-sku');
             if (physicalCartItems.length > 0) {
-                configurableCartItem = {
-                    cart_items: [
-                        {
-                            parent_sku: parentSku,
-                            data: {
-                                quantity: physicalCartItems[0].data.quantity,
-                                sku: physicalCartItems[0].data.sku
-                            }
+                configurableCartItem = [
+                    {
+                        parent_sku: parentSku,
+                        data: {
+                            quantity: physicalCartItems[0].data.quantity,
+                            sku: physicalCartItems[0].data.sku
                         }
-                    ]
+                    }
+                ]
 
-                }
             }
         }
         dispatch({ type: 'open' });
