@@ -38,28 +38,28 @@ const AddressForm = props => {
     function cleanAddress() {
         if (isSignedIn) {
             let defaultShipping = currentUser.addresses.find(isDefaultShipping);
-            return {
-                city: defaultShipping.city,
-                email: currentUser.email,
-                firstname: defaultShipping.firstname,
-                lastname: defaultShipping.lastname,
-                postcode: defaultShipping.postcode,
-                region_code: defaultShipping.region.region_code,
-                street0: defaultShipping.street[0],
-                telephone: defaultShipping.telephone
+            if (defaultShipping) {
+                return {
+                    city: defaultShipping.city,
+                    email: currentUser.email,
+                    firstname: defaultShipping.firstname,
+                    lastname: defaultShipping.lastname,
+                    postcode: defaultShipping.postcode,
+                    region_code: defaultShipping.region.region_code,
+                    street0: defaultShipping.street[0],
+                    telephone: defaultShipping.telephone
+                }
             }
-        } else {
-            return {
-                city: "",
-                email: "",
-                firstname: "",
-                lastname: "",
-                postcode: "",
-                region_code: "",
-                street0: "",
-                telephone: ""
-            }
-
+        }
+        return {
+            city: "",
+            email: "",
+            firstname: "",
+            lastname: "",
+            postcode: "",
+            region_code: "",
+            street0: "",
+            telephone: ""
         }
 
     }
