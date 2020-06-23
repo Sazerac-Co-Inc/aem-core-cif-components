@@ -44,7 +44,7 @@ const UpdateCustomerShippingAddress = props => {
             variables: {
                 id: id,
                 city: formValues.city,
-                company: formValues.company,
+                company: formValues.company ? formValues.company : '',
                 country_code: "US",
                 firstname: formValues.firstname,
                 lastname: formValues.lastname,
