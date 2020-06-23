@@ -44,7 +44,7 @@ const UpdateCustomerBillingAddress = props => {
             variables: {
                 id: id,
                 city: formValues.city,
-                company: formValues.company,
+                company: formValues.company ? formValues.company : '',
                 country_code: "US",
                 firstname: formValues.firstname,
                 lastname: formValues.lastname,
@@ -115,11 +115,10 @@ const UpdateCustomerBillingAddress = props => {
                             initialValue={`${!address ? '' : address.lastname ? address.lastname : ''}`}
                         />
                     </Field>
-                    <Field label="Company" required={true}>
+                    <Field label="Company">
                         <TextInput
                             field="company"
                             type="text"
-                            validate={combine([isRequired])}
                             validateOnBlur
                             aria-label="company"
                             initialValue={`${!address ? '' : address.company ? address.company : ''}`}

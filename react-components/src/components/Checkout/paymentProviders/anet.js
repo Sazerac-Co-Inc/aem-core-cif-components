@@ -97,7 +97,7 @@ const Anet = props => {
     // TODO remove accept.js when they leave this
     useEffect(() => {
         if (!anetActive) {
-            const version = document.getElementById('minicart').getAttribute("data-nav");
+            const version = document.getElementById('minicart').getAttribute("data-env");
             if (version == "production") {
                 loadScript('https://js.authorize.net/v1/Accept.js');
             } else {
