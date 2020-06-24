@@ -157,7 +157,7 @@ public class ProductImpl implements Product {
         String url = productRetriever.fetchProduct().get("external_alcohol_product_ref").toString();
         // Take out extra quotes that are coming over
         if (url.startsWith("\"") && url.endsWith("\"")) {
-            int length = url.length() - 2;
+            int length = url.length() - 1;
             url = url.substring(1, length);
             return validateUrl(url);
         }
