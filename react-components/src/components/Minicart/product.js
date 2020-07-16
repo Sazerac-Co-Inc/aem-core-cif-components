@@ -36,6 +36,21 @@ const Product = props => {
     const { thumbnail, name } = product;
     const [, { removeItem, editItem }] = useProduct({ item });
 
+    // TODO update to work with multiple configurations
+    function ProductSize() {
+        if (item.configurable_options) {
+            let optionLabel = item.configurable_options[0].option_label;
+            let optionValue = item.configurable_options[0].value_label;
+            return (
+                <div className="product__size">
+                    <span>{optionLabel}: </span><span>{optionValue}</span>
+                </div>
+            );
+        } else {
+            return null;
+        }
+    }
+
     let { price, row_total } = prices;
 
     const productImage = useMemo(() => {
@@ -54,6 +69,7 @@ const Product = props => {
         <li className={classes.root} data-testid="cart-item">
             {productImage}
             <div className={classes.name}>{name}</div>
+            <ProductSize />
             <div className={classes.quantity}>
                 <div className={classes.quantityRow}>
                     <span>{quantity}</span>

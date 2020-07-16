@@ -20,7 +20,13 @@ const LoadingIndicator = props => {
 
     return (
         <div className={className}>
-            <span className={`${classes.indicator} loader-img`}></span>
+            <img
+                className={classes.indicator}
+                src="/etc.clientlibs/fireball/clientlibs/clientlib-site/resources/images/loading-dark.svg"
+                width="64"
+                height="64"
+                alt="Loading indicator"
+            />
             <span className={classes.message}>{props.children}</span>
         </div>
     );
