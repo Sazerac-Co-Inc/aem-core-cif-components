@@ -16,7 +16,7 @@ import { useUserContext } from '../../context/UserContext';
 import { useNavigationContext } from '../../context/NavigationContext';
 
 import MUTATION_CREATE_CUSTOMER from '../../queries/mutation_create_customer.graphql';
-
+const accountLeadText = document.querySelector('p.createAccount__lead');
 export default () => {
     const [{ isSignedIn, createAccountError, inProgress }, { dispatch }] = useUserContext();
     const [, { showAccountCreated }] = useNavigationContext();
@@ -33,11 +33,22 @@ export default () => {
             await createCustomer({
                 variables: { email, password, firstname, lastname }
             });
-
             dispatch({ type: 'postCreateAccount', accountEmail: email });
             showAccountCreated();
+            // event for datalayer
+            const createAccountEvent = new CustomEvent('sazerac.cif.create-account', {
+                bubbles: true,
+                detail: { event: 'sazerac.cif.create-account' }
+            });
+            document.dispatchEvent(createAccountEvent);
         } catch (error) {
             dispatch({ type: 'createAccountError', error });
+            // event for datalayer
+            const createAccountErrorEvent = new CustomEvent('sazerac.cif.create-account-error', {
+                bubbles: true,
+                detail: { event: 'sazerac.cif.create-account-error', error: error }
+            });
+            document.dispatchEvent(createAccountErrorEvent);
         }
     };
 

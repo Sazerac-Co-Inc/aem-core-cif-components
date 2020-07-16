@@ -272,15 +272,15 @@ public class SearchResultsServiceImpl implements SearchResultsService {
                 } else if ("FilterRangeTypeInput".equals(filterAttributeMetadata.getFilterInputType())) {
                     FilterRangeTypeInput filter = new FilterRangeTypeInput();
                     final String[] rangeValues = value.split("_");
-
                     // For values such as `*_60`, the from range should be left empty
                     if (StringUtils.isNumeric(rangeValues[0])) {
                         filter.setFrom(rangeValues[0]);
                     }
-
                     // For values such as `60_*`, the to range should be left empty
                     if (StringUtils.isNumeric(rangeValues[1])) {
-                        filter.setTo(rangeValues[1]);
+                        // Change to float. Magento sends back whole numbers but doesn't account for everything up to the number and not
+                        // that number
+                        filter.setTo(String.valueOf(Float.parseFloat(rangeValues[1]) - Float.parseFloat(".001")));
                     }
                     filterInputs.addRangeTypeInput(code, filter);
                 }

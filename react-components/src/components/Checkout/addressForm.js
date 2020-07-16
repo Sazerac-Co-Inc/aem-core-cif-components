@@ -16,9 +16,10 @@ import { Form } from 'informed';
 import { array, bool, func, object, shape, string } from 'prop-types';
 import { useTranslation } from 'react-i18next';
 
+import { useUserContext } from '../../context/UserContext';
 import Button from '../Button';
 import classes from './addressForm.css';
-import { validateEmail, isRequired, hasLengthExactly, validateRegionCode } from '../../utils/formValidators';
+import { validateEmail, validatePhoneUS, validateZip, isRequired, hasLengthExactly, validateRegionCode } from '../../utils/formValidators';
 import combine from '../../utils/combineValidators';
 import TextInput from '../TextInput';
 import Field from '../Field';
@@ -27,9 +28,45 @@ const fields = ['city', 'email', 'firstname', 'lastname', 'postcode', 'region_co
 
 const AddressForm = props => {
     const [submitting, setIsSubmitting] = useState(false);
+    const [{ currentUser, isSignedIn }] = useUserContext();
     const { cancel, countries, isAddressInvalid, invalidAddressMessage, initialValues, submit } = props;
     const validationMessage = isAddressInvalid ? invalidAddressMessage : null;
     const [t] = useTranslation(['checkout', 'common']);
+
+    const address = cleanAddress();
+    // get address from current user since initialValues doesn't always get user address
+    function cleanAddress() {
+        if (isSignedIn) {
+            let defaultShipping = currentUser.addresses.find(isDefaultShipping);
+            if (defaultShipping) {
+                return {
+                    city: defaultShipping.city,
+                    email: currentUser.email,
+                    firstname: defaultShipping.firstname,
+                    lastname: defaultShipping.lastname,
+                    postcode: defaultShipping.postcode,
+                    region_code: defaultShipping.region.region_code,
+                    street0: defaultShipping.street[0],
+                    telephone: defaultShipping.telephone
+                }
+            }
+        }
+        return {
+            city: "",
+            email: "",
+            firstname: "",
+            lastname: "",
+            postcode: "",
+            region_code: "",
+            street0: "",
+            telephone: ""
+        }
+
+    }
+
+    function isDefaultShipping(addresses) {
+        return addresses.default_shipping === true;
+    }
 
     const values = useMemo(
         () =>
@@ -57,7 +94,7 @@ const AddressForm = props => {
     );
 
     return (
-        <Form className={classes.root} initialValues={values} onSubmit={handleSubmit}>
+        <Form className={classes.root} initialValues={initialValues ? values : address} onSubmit={handleSubmit}>
             <div className={classes.body}>
                 <h2 className={classes.heading}>Shipping Address</h2>
                 <div className={classes.firstname}>
@@ -102,12 +139,12 @@ const AddressForm = props => {
                 </div>
                 <div className={classes.postcode}>
                     <Field label={t('checkout:address-postcode', 'ZIP')}>
-                        <TextInput id={classes.postcode} field="postcode" validateOnBlur validate={isRequired} />
+                        <TextInput id={classes.postcode} field="postcode" validateOnBlur validate={combine([isRequired, validateZip])} />
                     </Field>
                 </div>
                 <div className={classes.telephone}>
                     <Field label={t('checkout:address-phone', 'Phone')}>
-                        <TextInput id={classes.telephone} field="telephone" validateOnBlur validate={isRequired} />
+                        <TextInput id={classes.telephone} field="telephone" validateOnBlur validate={combine([isRequired, validatePhoneUS])} />
                     </Field>
                 </div>
                 <div className={classes.validation}>{validationMessage}</div>
