@@ -44,9 +44,8 @@ const EditableForm = props => {
     const [{ editing, shippingAddress, shippingMethod, paymentMethod, billingAddress }, dispatch] = useCheckoutState();
     const { error: countriesError, countries } = useCountries();
     const [{ isSignedIn }] = useUserContext();
-    const [setShippingAddressesOnCart, { data, error }] = useMutation(MUTATION_SET_SHIPPING_ADDRESS);
-
     const cartDetailsQuery = useAwaitQuery(CART_DETAILS_QUERY);
+    const [setShippingAddressesOnCart, { data, error }] = useMutation(MUTATION_SET_SHIPPING_ADDRESS);
 
     const [setBraintreePaymentMethodOnCart] = useMutation(MUTATION_SET_BRAINTREE_PAYMENT_METHOD);
     const [setAnetPaymentMethodOnCart] = useMutation(MUTATION_SET_ANET_PLABS_PAYMENT_METHOD);
@@ -71,8 +70,8 @@ const EditableForm = props => {
     const handleSubmitAddressForm = async formValues => {
         cartDispatch({ type: 'beginLoading' });
         try {
-            await (setShippingAddressesOnCart({ variables: { cartId: cartId, countryCode: 'US', ...formValues } }));
-            await (getCartDetails({ cartDetailsQuery, dispatch: cartDispatch, cartId }));
+            await setShippingAddressesOnCart({ variables: { cartId: cartId, countryCode: 'US', ...formValues } });
+            await getCartDetails({ cartDetailsQuery, dispatch: cartDispatch, cartId });
         } catch (err) {
             cartDispatch({ type: 'error', error: err.toString() });
         } finally {
@@ -82,7 +81,7 @@ const EditableForm = props => {
         if (!isSignedIn) {
             setGuestEmailOnCart({ variables: { cartId: cartId, email: formValues.email } });
         }
-    }
+    };
 
     const handleSubmitPaymentsForm = async args => {
         console.log("handleSubmitPaymentsForm");
@@ -169,14 +168,14 @@ const EditableForm = props => {
     const handleSubmitShippingForm = async formValues => {
         cartDispatch({ type: 'beginLoading' });
         try {
-            await (setShippingMethodsOnCart({ variables: { cartId: cartId, ...formValues.shippingMethod } }));
-            await (getCartDetails({ cartDetailsQuery, dispatch: cartDispatch, cartId }));
+            await setShippingMethodsOnCart({ variables: { cartId: cartId, ...formValues.shippingMethod } });
+            await getCartDetails({ cartDetailsQuery, dispatch: cartDispatch, cartId });
         } catch (err) {
             cartDispatch({ type: 'error', error: err.toString() });
         } finally {
             cartDispatch({ type: 'endLoading' });
         }
-    }
+    };
 
     if (data && (isSignedIn || guestEmailResult)) {
         const guestEmail = guestEmailResult ? { email: guestEmailResult.setGuestEmailOnCart.cart.email } : {};

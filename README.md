@@ -38,7 +38,7 @@ The latest version of the AEM CIF Core Components, require the below minimum sys
 
 | CIF Core Components | AEM 6.4 | AEM 6.5 | Magento                    | Java |
 | ------------------- | ------- | ------- | -------------------------- | ---- |
-| 1.0.0               | 6.4.4.0 | 6.5.0   | 2.3.4 / 2.3.5              | 1.8  |
+| 1.1.0               | 6.4.4.0 | 6.5.0   | 2.3.4 / 2.3.5              | 1.8  |
 
 For a list of requirements for previous versions, see [Historical System Requirements](VERSIONS.md).
 
@@ -160,6 +160,8 @@ We use `webpack` to build our clientlibs. Please read [Packing Clientlibs with W
 Releases of this project are triggered by manually running `mvn release:prepare release:clean` on the `master` branch on the root folder of this repository. Once you choose the release and the next snapshot versions, this commits the change along with a release git tag like for example `core-cif-components-reactor-x.y.z`. Note that the commits are not automatically pushed to the git repository, so you have some time to check your changes and then manually push them. The push then triggers a dedicated `CircleCI` build that performs the deployment of the tagged artifact to Maven Central.
 
 _Important_: this project does Maven reactor releases, do **not** trigger releases from sub modules!
+
+Note: in case it is needed to update the version of a java bundle because of API changes and semantic versioning, one can easily update the parent POM version and all the POMs referencing the parent POM version by running the following command in the PARENT project folder: `mvn versions:set -DnewVersion=x.y.z-SNAPSHOT`. This will ensure all projects have the same version.
 
 ## Contributing
 
