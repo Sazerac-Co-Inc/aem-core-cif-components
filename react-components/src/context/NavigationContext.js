@@ -78,6 +78,8 @@ const NavigationContextProvider = props => {
 
     const showAccountCreated = () => NavigationActions.showAccountCreated({ dispatch, t });
 
+    const showView = view => NavigationActions.showView({ dispatch, t, view });
+
     const handleBack = useCallback(() => {
         if (navigationState.view === null) {
             return;
@@ -93,7 +95,9 @@ const NavigationContextProvider = props => {
             showMyAccount();
             return;
         }
-        dispatch({ type: 'changeView', view: parent });
+        if (parent) {
+            showView(parent);
+        }
     }, [view]);
 
     useEventListener(document, 'aem.navigation.back', handleBack);

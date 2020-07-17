@@ -323,6 +323,12 @@
           "label": "Performance Fabric"
         }
       ]
+    },
+    "category": {
+      "id": 6,
+      "name": "Running",
+      "product_count": 8,
+      "image": "https://some-hostname.magentosite.cloud/media/catalog/timeless.jpg"
     }
   }
 }

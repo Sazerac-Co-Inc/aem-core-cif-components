@@ -43,6 +43,7 @@ import com.adobe.cq.commerce.core.components.services.UrlProvider;
 import com.adobe.cq.commerce.core.components.testing.Utils;
 import com.adobe.cq.commerce.core.search.internal.services.SearchFilterServiceImpl;
 import com.adobe.cq.commerce.core.search.internal.services.SearchResultsServiceImpl;
+import com.adobe.cq.commerce.core.search.models.SearchAggregation;
 import com.adobe.cq.commerce.core.search.models.SearchResultsSet;
 import com.adobe.cq.commerce.graphql.client.GraphqlClient;
 import com.adobe.cq.commerce.graphql.client.HttpMethod;
@@ -56,7 +57,9 @@ import com.google.common.base.Function;
 import io.wcm.testing.mock.aem.junit.AemContext;
 import io.wcm.testing.mock.aem.junit.AemContextCallback;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -86,6 +89,7 @@ public class SearchResultsImplTest {
 
     private SearchResultsImpl searchResultsModel;
     private Resource pageResource;
+    private GraphqlClient graphqlClient;
 
     @Mock
     HttpClient httpClient;
@@ -96,7 +100,7 @@ public class SearchResultsImplTest {
         context.currentResource(SEARCHRESULTS);
         Resource searchResultsResource = context.resourceResolver().getResource(SEARCHRESULTS);
 
-        GraphqlClient graphqlClient = new GraphqlClientImpl();
+        graphqlClient = Mockito.spy(new GraphqlClientImpl());
         Whitebox.setInternalState(graphqlClient, "gson", QueryDeserializer.getGson());
         Whitebox.setInternalState(graphqlClient, "client", httpClient);
         Whitebox.setInternalState(graphqlClient, "httpMethod", HttpMethod.POST);
@@ -147,6 +151,17 @@ public class SearchResultsImplTest {
         Assert.assertEquals(7, searchResultsSet.getAvailableAggregations().size()); // category_id is removed
         Assert.assertEquals(1, searchResultsSet.getAppliedQueryParameters().size()); // only search_query
         Assert.assertEquals(4, searchResultsSet.getTotalResults().intValue());
+
+        List<SearchAggregation> searchAggregations = searchResultsSet.getSearchAggregations();
+        Assert.assertEquals(8, searchAggregations.size());
+
+        // We want to make sure all price ranges are properly processed
+        SearchAggregation priceAggregation = searchAggregations.stream().filter(a -> a.getIdentifier().equals("price")).findFirst().get();
+        Assert.assertEquals(3, priceAggregation.getOptions().size());
+        Assert.assertEquals(3, priceAggregation.getOptionCount());
+        Assert.assertTrue(priceAggregation.getOptions().stream().anyMatch(o -> o.getDisplayLabel().equals("30-40")));
+        Assert.assertTrue(priceAggregation.getOptions().stream().anyMatch(o -> o.getDisplayLabel().equals("40-*")));
+        Assert.assertTrue(priceAggregation.getOptions().stream().anyMatch(o -> o.getDisplayLabel().equals("14")));
     }
 
     @Test
@@ -154,7 +169,11 @@ public class SearchResultsImplTest {
         searchResultsModel = context.request().adaptTo(SearchResultsImpl.class);
 
         Collection<ProductListItem> products = searchResultsModel.getProducts();
+
+        // Check that we get an empty list of products and the GraphQL client is never called
         Assert.assertTrue("Products list is empty", products.isEmpty());
+        Mockito.verify(graphqlClient, never()).execute(any(), any(), any());
+        Mockito.verify(graphqlClient, never()).execute(any(), any(), any(), any());
     }
 
     @Test
@@ -197,5 +216,53 @@ public class SearchResultsImplTest {
 
         SearchResultsSet searchResultsSet = searchResultsModel.getSearchResultsSet();
         Assert.assertEquals(0, searchResultsSet.getAvailableAggregations().size());
+    }
+
+    @Test
+    public void testSorting() {
+        context.request().setParameterMap(Collections.singletonMap("search_query", "glove"));
+        searchResultsModel = context.request().adaptTo(SearchResultsImpl.class);
+        SearchResultsSet resultSet = searchResultsModel.getSearchResultsSet();
+        Assert.assertNotNull(resultSet);
+        Assert.assertTrue(resultSet.hasSorting());
+        Sorter sorter = resultSet.getSorter();
+        Assert.assertNotNull(sorter);
+
+        SorterKey currentKey = sorter.getCurrentKey();
+        Assert.assertNotNull(currentKey);
+        Assert.assertEquals("relevance", currentKey.getName());
+        Assert.assertEquals("Relevance", currentKey.getLabel());
+        Assert.assertEquals(Sorter.Order.DESC, currentKey.getOrder());
+        Assert.assertTrue(currentKey.isSelected());
+
+        Map<String, String> currentOrderParameters = currentKey.getCurrentOrderParameters();
+        Assert.assertNotNull(currentOrderParameters);
+        Assert.assertEquals(resultSet.getAppliedQueryParameters().size() + 2, currentOrderParameters.size());
+        resultSet.getAppliedQueryParameters().forEach((key, value) -> Assert.assertEquals(value, currentOrderParameters.get(key)));
+        Assert.assertEquals("relevance", currentOrderParameters.get(Sorter.PARAMETER_SORT_KEY));
+        Assert.assertEquals("desc", currentOrderParameters.get(Sorter.PARAMETER_SORT_ORDER));
+
+        Map<String, String> oppositeOrderParameters = currentKey.getOppositeOrderParameters();
+        Assert.assertNotNull(oppositeOrderParameters);
+        Assert.assertEquals(resultSet.getAppliedQueryParameters().size() + 2, oppositeOrderParameters.size());
+        resultSet.getAppliedQueryParameters().forEach((key, value) -> Assert.assertEquals(value, oppositeOrderParameters.get(key)));
+        Assert.assertEquals("relevance", oppositeOrderParameters.get(Sorter.PARAMETER_SORT_KEY));
+        Assert.assertEquals("asc", oppositeOrderParameters.get(Sorter.PARAMETER_SORT_ORDER));
+
+        List<SorterKey> keys = sorter.getKeys();
+        Assert.assertNotNull(keys);
+        Assert.assertEquals(3, keys.size());
+        SorterKey defaultKey = keys.get(0);
+        Assert.assertEquals(currentKey.getName(), defaultKey.getName());
+
+        SorterKey otherKey = keys.get(1);
+        Assert.assertEquals("price", otherKey.getName());
+        Assert.assertEquals("Price", otherKey.getLabel());
+        Assert.assertEquals(Sorter.Order.ASC, otherKey.getOrder());
+
+        otherKey = keys.get(2);
+        Assert.assertEquals("name", otherKey.getName());
+        Assert.assertEquals("Product Name", otherKey.getLabel());
+        Assert.assertEquals(Sorter.Order.ASC, otherKey.getOrder());
     }
 }

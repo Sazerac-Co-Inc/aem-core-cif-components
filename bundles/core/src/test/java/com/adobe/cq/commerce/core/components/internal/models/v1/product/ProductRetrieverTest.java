@@ -15,5 +15,7 @@
 package com.adobe.cq.commerce.core.components.internal.models.v1.product;
 
 public class ProductRetrieverTest {
+
     // TODO update test to work with new graphql attribute
+
 }

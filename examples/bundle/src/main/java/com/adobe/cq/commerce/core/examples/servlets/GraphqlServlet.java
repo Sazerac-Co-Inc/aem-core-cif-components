@@ -93,6 +93,19 @@ public class GraphqlServlet extends SlingAllMethodsServlet {
 
     private static final String GROUPED_PRODUCT_URL_KEY = "set-of-sprite-yoga-straps";
 
+    private static final String ATTRIBUTES_JSON = "magento-graphql-attributes.json";
+    private static final String RELATED_PRODUCTS_JSON = "magento-graphql-relatedproducts.json";
+    private static final String UPSELL_PRODUCTS_JSON = "magento-graphql-upsellproducts.json";
+    private static final String CROSSSELL_PRODUCTS_JSON = "magento-graphql-crosssellproducts.json";
+    private static final String PRODUCT_CAROUSEL_JSON = "magento-graphql-productcarousel.json";
+    private static final String PRODUCT_TEASER_JSON = "magento-graphql-productteaser.json";
+    private static final String PRODUCTS_COLLECTION_JSON = "magento-graphql-products-collection.json";
+    private static final String GROUPED_PRODUCT_JSON = "magento-graphql-grouped-product.json";
+    private static final String PRODUCTS_JSON = "magento-graphql-products.json";
+    private static final String CATEGORY_TREE_JSON = "magento-graphql-categories.json";
+    private static final String CATEGORY_JSON = "magento-graphql-category.json";
+    private static final String FEATURED_CATEGORY_LIST_JSON = "magento-graphql-featuredcategorylist.json";
+
     private Gson gson;
     private GraphQL graphQL;
     private Map<String, GraphqlResponse<Query, Error>> graphqlResponsesCache = new HashMap<>();
@@ -295,10 +308,6 @@ public class GraphqlServlet extends SlingAllMethodsServlet {
                 switch (fieldName) {
                     case "products": {
                         return readProductsResponse(env);
-                    }
-                    case "storeConfig": {
-                        GraphqlResponse<Query, Error> graphqlResponse = readGraphqlResponse("magento-graphql-storeconfig.json");
-                        return graphqlResponse.getData().getStoreConfig();
                     }
                     case "category": {
                         return readCategoryResponse(env);

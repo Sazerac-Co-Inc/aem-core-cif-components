@@ -65,8 +65,8 @@ const CartInitializer = props => {
     };
 
     useEffect(() => {
-        if (cartId && cartId.length > 0) {
-            dispatch({ type: 'cartId', cartId, methods: createCartHandlers(cartId, dispatch) });
+        if (cartId && cartId.length > 0 && !stateCartId) {
+            dispatch({ type: 'cartId', cartId });
         }
     }, [cartId]);
 

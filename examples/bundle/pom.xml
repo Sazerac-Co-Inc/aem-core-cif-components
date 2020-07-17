@@ -20,7 +20,7 @@
     <parent>
         <groupId>com.adobe.commerce.cif</groupId>
         <artifactId>core-cif-components-parent</artifactId>
-        <version>1.0.7-SNAPSHOT</version>
+        <version>1.1.0-SNAPSHOT</version>
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
 
@@ -89,7 +89,8 @@
                         <Embed-Dependency>
                             graphql-java;inline=false;scope=compile|runtime,
                             java-dataloader;inline=false;scope=compile|runtime,
-                            reactive-streams;inline=false;scope=compile|runtime
+                            reactive-streams;inline=false;scope=compile|runtime,
+                            antlr4-runtime;inline=false;scope=compile|runtime
                         </Embed-Dependency>
                         <Embed-Transitive>true</Embed-Transitive>
                     </instructions>
@@ -358,6 +359,13 @@
             <groupId>com.graphql-java</groupId>
             <artifactId>graphql-java</artifactId>
             <version>14.0</version>
+        </dependency>
+        
+        <!-- Transitive dependencies for graphql-java that must be embedded in the bundle -->
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.7.2</version>
         </dependency>
         <dependency>
             <groupId>com.graphql-java</groupId>
