@@ -55,11 +55,23 @@ export const showSignIn = ({ dispatch, t }) => {
     dispatchEvent(startAccMgEvent);
     dispatchEvent(new CustomEvent('aem.accmg.step', { detail: { title: stepTitles[view](t) } }));
     dispatch({ type: 'changeView', view });
+    // event for datalayer
+    const showSignInEvent = new CustomEvent('sazerac.cif.show-sign-in', {
+        bubbles: true,
+        detail: { event: 'sazerac.cif.show-sign-in' }
+    });
+    document.dispatchEvent(showSignInEvent);
 };
 
 export const showMenu = ({ dispatch, t }) => {
     dispatch({ type: 'changeView', view: 'MENU' });
     dispatchEvent(exitAccMgEvent);
+    // event for datalayer
+    const showMenuEvent = new CustomEvent('sazerac.cif.show-menu-event', {
+        bubbles: true,
+        detail: { event: 'sazerac.cif.show-menu-event' }
+    });
+    document.dispatchEvent(showMenuEvent);
 };
 
 export const showMyAccount = ({ dispatch, t }) => {
@@ -67,6 +79,12 @@ export const showMyAccount = ({ dispatch, t }) => {
     dispatchEvent(startAccMgEvent);
     dispatchEvent(new CustomEvent('aem.accmg.step', { detail: { title: stepTitles[view](t) } }));
     dispatch({ type: 'changeView', view });
+    // event for datalayer
+    const showMyAccount = new CustomEvent('sazerac.cif.show-my-account', {
+        bubbles: true,
+        detail: { event: 'sazerac.cif.show-my-account' }
+    });
+    document.dispatchEvent(showMyAccount);
 };
 
 export const showUpdateCustomerBillingAddress = ({ dispatch, t }) => {
