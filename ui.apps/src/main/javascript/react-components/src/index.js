@@ -11,36 +11,26 @@
  *    governing permissions and limitations under the License.
  *
  ******************************************************************************/
-'use strict';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { CommerceApp, Cart, AuthBar } from '@adobe/aem-core-cif-react-components';
+import { I18nextProvider } from 'react-i18next';
 
-class PriceFormatter {
-    constructor(locale) {
-        this._locale = locale;
-        this._formatter = null;
-    }
+import i18n from './i18n';
 
-    formatPrice(price) {
-        if (!this._formatter) {
-            this._formatter = new Intl.NumberFormat(this._locale, {
-                style: 'currency',
-                currency: price.currency
-            });
-        }
-        return this._formatter.format(price.value);
-    }
-}
+const App = () => {
+    const { storeView, graphqlEndpoint } = document.querySelector('body').dataset;
+    return (
+        <I18nextProvider i18n={i18n} defaultNS="common">
+            <CommerceApp uri={graphqlEndpoint} storeView={storeView}>
+                <Cart />
+                <AuthBar />
+            </CommerceApp>
+        </I18nextProvider>
+    );
+};
 
-(function() {
-    function onDocumentReady() {
-        window.CIF = window.CIF || {};
-        window.CIF.PriceFormatter = PriceFormatter;
-    }
-
-    if (document.readyState !== 'loading') {
-        onDocumentReady();
-    } else {
-        document.addEventListener('DOMContentLoaded', onDocumentReady);
-    }
-})();
-
-export default PriceFormatter;
+window.onload = function() {
+    const element = document.getElementById('minicart');
+    ReactDOM.render(<App />, element);
+};

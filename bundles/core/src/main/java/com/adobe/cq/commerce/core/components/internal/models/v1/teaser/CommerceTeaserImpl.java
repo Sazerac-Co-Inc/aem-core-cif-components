@@ -85,7 +85,6 @@ public class CommerceTeaserImpl implements CommerceTeaser {
                 String categoryId = properties.get(PN_ACTION_CATEGORY_ID, String.class);
                 String selector = null;
                 Page page;
-                boolean isProduct = false;
 
                 if (categoryId != null) {
                     page = categoryPage;
@@ -93,12 +92,11 @@ public class CommerceTeaserImpl implements CommerceTeaser {
                 } else if (productSlug != null) {
                     page = productPage;
                     selector = productSlug;
-                    isProduct = true;
                 } else {
                     page = currentPage;
 
                 }
-                actions.add(new CommerceTeaserActionItem(title, selector, page, request, urlProvider, isProduct));
+                actions.add(new CommerceTeaserActionItem(title, selector, page, request, urlProvider, productSlug != null));
             }
         }
     }

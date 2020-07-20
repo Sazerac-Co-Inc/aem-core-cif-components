@@ -65,8 +65,6 @@ public interface Product {
 
     Boolean isVirtualProduct();
 
-    Boolean isBundleProduct();
-
     String getVariantsJson();
 
     List<Variant> getVariants();
@@ -82,6 +80,4 @@ public interface Product {
     Boolean loadClientPrice();
 
     AbstractProductRetriever getProductRetriever();
-
-    String getDrizlyUrl();
 }

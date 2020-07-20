@@ -14,7 +14,6 @@
 'use strict';
 
 import Product from '../../../../src/main/content/jcr_root/apps/core/cif/components/commerce/product/v1/product/clientlib/js/product.js';
-import PriceFormatter from '../../../../src/main/content/jcr_root/apps/core/cif/clientlibs/common/js/PriceFormatter.js';
 
 describe('Product', () => {
     describe('Core', () => {
@@ -58,7 +57,13 @@ describe('Product', () => {
             // Create empty context
             windowCIF = window.CIF;
             window.CIF = {};
-            window.CIF.PriceFormatter = PriceFormatter;
+
+            window.CIF.PriceFormatter = class {
+                formatPrice(price) {}
+            };
+            sinon
+                .stub(window.CIF.PriceFormatter.prototype, 'formatPrice')
+                .callsFake(price => price.currency + ' ' + price.value);
 
             window.CIF.CommerceGraphqlApi = {
                 getProductPrices: sinon.stub().resolves(clientPrices)
@@ -72,7 +77,6 @@ describe('Product', () => {
 
         beforeEach(() => {
             productRoot = document.createElement('div');
-            productRoot.dataset.locale = 'en-US'; // enforce the locale for prices
             productRoot.insertAdjacentHTML(
                 'afterbegin',
                 `<div class="productFullDetail__title">
@@ -112,7 +116,7 @@ describe('Product', () => {
                 assert.deepEqual(product._state.prices, convertedPrices);
 
                 let price = productRoot.querySelector(Product.selectors.price).innerText;
-                assert.equal(price, '$98.00');
+                assert.include(price, 'USD 98');
             });
         });
 
@@ -150,7 +154,7 @@ describe('Product', () => {
 
             assert.equal(sku, variant.sku);
             assert.equal(name, variant.name);
-            assert.equal(price, '$98.00');
+            assert.equal(price, 'USD 98');
             assert.equal(description, variant.description);
         });
 
@@ -172,7 +176,7 @@ describe('Product', () => {
 
             // Check fields
             let price = productRoot.querySelector(Product.selectors.price).innerText;
-            assert.equal(price, '$98.00');
+            assert.include(price, 'USD 98');
         });
 
         it('displays a price range', () => {
@@ -216,7 +220,7 @@ describe('Product', () => {
 
             return product._initPrices().then(() => {
                 let price = productRoot.querySelector(Product.selectors.price).innerText;
-                assert.equal(price, 'From $10.00 To $20.00');
+                assert.include(price, 'USD 10 - USD 20');
             });
         });
 
@@ -249,9 +253,10 @@ describe('Product', () => {
                 let regularPrice = productRoot.querySelector(Product.selectors.price + ' .regularPrice').innerText;
                 let finalPrice = productRoot.querySelector(Product.selectors.price + ' .discountedPrice').innerText;
                 let youSave = productRoot.querySelector(Product.selectors.price + ' .you-save').innerText;
-                assert.equal(regularPrice, '$80.12');
-                assert.equal(finalPrice, '$69.99');
-                assert.equal(youSave, 'You save $10.13 (12.6%)');
+                assert.include(regularPrice, 'USD 80.12');
+                assert.include(finalPrice, 'USD 69.99');
+                assert.include(youSave, 'USD 10.13');
+                assert.include(youSave, '12.6%');
             });
         });
 
@@ -298,9 +303,10 @@ describe('Product', () => {
                 let regularPrice = productRoot.querySelector(Product.selectors.price + ' .regularPrice').innerText;
                 let finalPrice = productRoot.querySelector(Product.selectors.price + ' .discountedPrice').innerText;
                 let youSave = productRoot.querySelector(Product.selectors.price + ' .you-save').innerText;
-                assert.equal(regularPrice, 'From $10.00 To $20.00');
-                assert.equal(finalPrice, 'From $5.00 To $10.00');
-                assert.equal(youSave, 'You save $5.00 (50%)');
+                assert.include(regularPrice, 'USD 10 - USD 20');
+                assert.include(finalPrice, 'USD 5 - USD 10');
+                assert.include(youSave, 'USD 5');
+                assert.include(youSave, '50%');
             });
         });
     });
