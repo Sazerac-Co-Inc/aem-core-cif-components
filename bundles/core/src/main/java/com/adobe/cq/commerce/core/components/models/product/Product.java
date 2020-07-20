@@ -80,4 +80,6 @@ public interface Product {
     Boolean loadClientPrice();
 
     AbstractProductRetriever getProductRetriever();
+
+    String getDrizlyUrl();
 }
