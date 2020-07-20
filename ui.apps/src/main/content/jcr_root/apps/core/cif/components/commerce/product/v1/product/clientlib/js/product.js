@@ -130,7 +130,6 @@ class Product {
      * Update price in the DOM.
      */
     _updatePrice(price, optionalSku) {
-        let youSave = this._formatter.get('You save');
         let innerHTML = '';
         if (!price.range) {
             if (price.discounted) {
@@ -142,10 +141,10 @@ class Product {
                         value: price.finalPrice,
                         currency: price.currency
                     })}</span>
-                    <span class="you-save">${youSave} ${this._formatter.formatPrice({
-                    value: price.discountAmount,
-                    currency: price.currency
-                })} (${price.discountPercent}%)</span>`;
+                    <span class="you-save">You save ${this._formatter.formatPrice({
+                        value: price.discountAmount,
+                        currency: price.currency
+                    })} (${price.discountPercent}%)</span>`;
             } else {
                 innerHTML += `<span>${this._formatter.formatPrice({
                     value: price.regularPrice,
@@ -153,32 +152,27 @@ class Product {
                 })}</span>`;
             }
         } else {
-            let from = this._formatter.get('From');
-            let to = this._formatter.get('To');
             if (price.discounted) {
-                innerHTML += `<span class="regularPrice">${from} ${this._formatter.formatPrice({
+                innerHTML += `<span class="regularPrice">${this._formatter.formatPrice({
                     value: price.regularPrice,
                     currency: price.currency
-                })} ${to} ${this._formatter.formatPrice({
-                    value: price.regularPriceMax,
-                    currency: price.currency
-                })}</span>
-                    <span class="discountedPrice">${from} ${this._formatter.formatPrice({
-                    value: price.finalPrice,
-                    currency: price.currency
-                })} ${to} ${this._formatter.formatPrice({
+                })} - ${this._formatter.formatPrice({ value: price.regularPriceMax, currency: price.currency })}</span>
+                    <span class="discountedPrice">${this._formatter.formatPrice({
+                        value: price.finalPrice,
+                        currency: price.currency
+                    })} - ${this._formatter.formatPrice({
                     value: price.finalPriceMax,
                     currency: price.currency
                 })}</span>
-                    <span class="you-save">${youSave} ${this._formatter.formatPrice({
-                    value: price.discountAmount,
-                    currency: price.currency
-                })} (${price.discountPercent}%)</span>`;
+                    <span class="you-save">You save ${this._formatter.formatPrice({
+                        value: price.discountAmount,
+                        currency: price.currency
+                    })} (${price.discountPercent}%)</span>`;
             } else {
-                innerHTML += `<span>${from} ${this._formatter.formatPrice({
+                innerHTML += `<span>${this._formatter.formatPrice({
                     value: price.regularPrice,
                     currency: price.currency
-                })} ${to} ${this._formatter.formatPrice({
+                })} - ${this._formatter.formatPrice({
                     value: price.regularPriceMax,
                     currency: price.currency
                 })}</span>`;

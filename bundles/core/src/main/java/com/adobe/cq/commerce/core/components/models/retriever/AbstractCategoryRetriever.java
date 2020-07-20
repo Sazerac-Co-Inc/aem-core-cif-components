@@ -50,7 +50,6 @@ public abstract class AbstractCategoryRetriever extends AbstractRetriever {
     /**
      * Media base url from the Magento store info. Is only available after populate() was called.
      */
-    @Deprecated
     protected String mediaBaseUrl;
 
     /**

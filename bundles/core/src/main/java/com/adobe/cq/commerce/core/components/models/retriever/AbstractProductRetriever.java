@@ -56,7 +56,6 @@ public abstract class AbstractProductRetriever extends AbstractRetriever {
     /**
      * Media base url from the Magento store info. Is only available after populate() was called.
      */
-    @Deprecated
     protected String mediaBaseUrl;
 
     /**
@@ -91,7 +90,6 @@ public abstract class AbstractProductRetriever extends AbstractRetriever {
      *
      * @return Media base url
      */
-    @Deprecated
     public String fetchMediaBaseUrl() {
         if (this.mediaBaseUrl == null) {
             populate();

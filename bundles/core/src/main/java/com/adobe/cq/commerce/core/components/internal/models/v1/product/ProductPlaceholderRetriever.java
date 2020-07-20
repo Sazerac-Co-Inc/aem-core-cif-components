@@ -34,6 +34,7 @@ class ProductPlaceholderRetriever extends AbstractProductRetriever {
         Query rootQuery = QueryDeserializer.getGson().fromJson(json, Query.class);
 
         product = rootQuery.getProducts().getItems().get(0);
+        mediaBaseUrl = rootQuery.getStoreConfig().getSecureBaseMediaUrl();
     }
 
     @Override

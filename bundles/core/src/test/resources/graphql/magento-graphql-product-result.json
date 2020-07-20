@@ -49,27 +49,27 @@
               }
             }
           },
-          "media_gallery": [
+          "media_gallery_entries": [
             {
-              "__typename": "ProductImage",
               "disabled": false,
-              "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_main_6.jpg",
+              "file": "/m/j/mj01-yellow_main_6.jpg",
               "label": "",
-              "position": 1
+              "position": 1,
+              "media_type": "image"
             },
             {
-              "__typename": "ProductImage",
               "disabled": false,
-              "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_alt1_6.jpg",
+              "file": "/m/j/mj01-yellow_alt1_6.jpg",
               "label": "",
-              "position": 2
+              "position": 2,
+              "media_type": "image"
             },
             {
-              "__typename": "ProductImage",
               "disabled": false,
-              "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_back_6.jpg",
+              "file": "/m/j/mj01-yellow_back_6.jpg",
               "label": "",
-              "position": 3
+              "position": 3,
+              "media_type": "image"
             }
           ],
           "configurable_options": [
@@ -163,13 +163,13 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-orange_main_6.jpg",
+                    "file": "/m/j/mj01-orange_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -218,13 +218,13 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-red_main_6.jpg",
+                    "file": "/m/j/mj01-red_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -273,27 +273,27 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_main_6.jpg",
+                    "file": "/m/j/mj01-yellow_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   },
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_alt1_6.jpg",
+                    "file": "/m/j/mj01-yellow_alt1_6.jpg",
                     "label": "",
-                    "position": 2
+                    "position": 2,
+                    "media_type": "image"
                   },
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_back_6.jpg",
+                    "file": "/m/j/mj01-yellow_back_6.jpg",
                     "label": "",
-                    "position": 3
+                    "position": 3,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -342,13 +342,13 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-orange_main_6.jpg",
+                    "file": "/m/j/mj01-orange_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -397,13 +397,13 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-red_main_6.jpg",
+                    "file": "/m/j/mj01-red_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -452,27 +452,27 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_main_6.jpg",
+                    "file": "/m/j/mj01-yellow_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   },
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_alt1_6.jpg",
+                    "file": "/m/j/mj01-yellow_alt1_6.jpg",
                     "label": "",
-                    "position": 2
+                    "position": 2,
+                    "media_type": "image"
                   },
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_back_6.jpg",
+                    "file": "/m/j/mj01-yellow_back_6.jpg",
                     "label": "",
-                    "position": 3
+                    "position": 3,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -521,13 +521,13 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-orange_main_6.jpg",
+                    "file": "/m/j/mj01-orange_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -576,13 +576,13 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-red_main_6.jpg",
+                    "file": "/m/j/mj01-red_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -631,27 +631,27 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_main_6.jpg",
+                    "file": "/m/j/mj01-yellow_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   },
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_alt1_6.jpg",
+                    "file": "/m/j/mj01-yellow_alt1_6.jpg",
                     "label": "",
-                    "position": 2
+                    "position": 2,
+                    "media_type": "image"
                   },
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_back_6.jpg",
+                    "file": "/m/j/mj01-yellow_back_6.jpg",
                     "label": "",
-                    "position": 3
+                    "position": 3,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -700,13 +700,13 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-orange_main_6.jpg",
+                    "file": "/m/j/mj01-orange_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -755,13 +755,13 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-red_main_6.jpg",
+                    "file": "/m/j/mj01-red_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -810,27 +810,27 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_main_6.jpg",
+                    "file": "/m/j/mj01-yellow_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   },
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_alt1_6.jpg",
+                    "file": "/m/j/mj01-yellow_alt1_6.jpg",
                     "label": "",
-                    "position": 2
+                    "position": 2,
+                    "media_type": "image"
                   },
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_back_6.jpg",
+                    "file": "/m/j/mj01-yellow_back_6.jpg",
                     "label": "",
-                    "position": 3
+                    "position": 3,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -879,13 +879,13 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-orange_main_6.jpg",
+                    "file": "/m/j/mj01-orange_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -934,13 +934,13 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-red_main_6.jpg",
+                    "file": "/m/j/mj01-red_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -989,27 +989,27 @@
                     }
                   }
                 },
-                "media_gallery": [
+                "media_gallery_entries": [
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_main_6.jpg",
+                    "file": "/m/j/mj01-yellow_main_6.jpg",
                     "label": "",
-                    "position": 1
+                    "position": 1,
+                    "media_type": "image"
                   },
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_alt1_6.jpg",
+                    "file": "/m/j/mj01-yellow_alt1_6.jpg",
                     "label": "",
-                    "position": 2
+                    "position": 2,
+                    "media_type": "image"
                   },
                   {
-                    "__typename": "ProductImage",
                     "disabled": false,
-                    "url": "https://test-url.magentosite.cloud/pub/media/catalog/product/cache/m/j/mj01-yellow_back_6.jpg",
+                    "file": "/m/j/mj01-yellow_back_6.jpg",
                     "label": "",
-                    "position": 3
+                    "position": 3,
+                    "media_type": "image"
                   }
                 ]
               }
@@ -1017,6 +1017,9 @@
           ]
         }
       ]
+    },
+    "storeConfig": {
+      "secure_base_media_url": "https://test-url.magentosite.cloud/pub/media/"
     }
   }
 }

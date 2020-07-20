@@ -86,13 +86,6 @@ const reducerFactory = () => {
                     createAccountError: parseError(action.error)
                 };
             }
-            case 'createAccountEarly': {
-                return {
-                    ...state,
-                    inProgress: false,
-                    createAccountError: "The account is created, check your email and confirm your account."
-                };
-            }
             case 'signOut':
                 return {
                     ...state,

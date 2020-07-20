@@ -35,13 +35,13 @@
               }
             }
           },
-          "media_gallery": [
+          "media_gallery_entries": [
             {
-              "__typename": "ProductImage",
               "disabled": false,
-              "url": "http://test-url.magentosite.cloud/pub/media/catalog/product/cache/cafecb2c660d511e3918d429acdc5ff6/l/u/luma-yoga-strap-set.jpg",
+              "file": "/l/u/luma-yoga-strap-set.jpg",
               "label": "Image",
-              "position": 1
+              "position": 1,
+              "media_type": "image"
             }
           ],
           "items": [
@@ -148,6 +148,9 @@
           ]
         }
       ]
+    },
+    "storeConfig": {
+      "secure_base_media_url": "http://test-url.magentosite.cloud/pub/media/"
     }
   }
 }

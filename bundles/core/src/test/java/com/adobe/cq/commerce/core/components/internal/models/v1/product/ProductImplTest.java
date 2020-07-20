@@ -24,7 +24,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.scripting.SlingBindings;
-import org.apache.sling.api.wrappers.ValueMapDecorator;
 import org.apache.sling.servlethelpers.MockRequestPathInfo;
 import org.apache.sling.testing.mock.sling.ResourceResolverType;
 import org.apache.sling.xss.XSSAPI;
@@ -54,11 +53,12 @@ import com.adobe.cq.commerce.magento.graphql.ConfigurableProduct;
 import com.adobe.cq.commerce.magento.graphql.ConfigurableProductOptions;
 import com.adobe.cq.commerce.magento.graphql.ConfigurableProductOptionsValues;
 import com.adobe.cq.commerce.magento.graphql.GroupedProduct;
-import com.adobe.cq.commerce.magento.graphql.MediaGalleryInterface;
+import com.adobe.cq.commerce.magento.graphql.MediaGalleryEntry;
 import com.adobe.cq.commerce.magento.graphql.ProductInterface;
 import com.adobe.cq.commerce.magento.graphql.ProductStockStatus;
 import com.adobe.cq.commerce.magento.graphql.Query;
 import com.adobe.cq.commerce.magento.graphql.SimpleProduct;
+import com.adobe.cq.commerce.magento.graphql.StoreConfig;
 import com.adobe.cq.commerce.magento.graphql.VirtualProduct;
 import com.adobe.cq.commerce.magento.graphql.gson.QueryDeserializer;
 import com.adobe.cq.sightly.SightlyWCMMode;
@@ -78,8 +78,9 @@ public class ProductImplTest {
 
     @Rule
     public final AemContext context = createContext("/context/jcr-content.json");
-    private static final ValueMap MOCK_CONFIGURATION = new ValueMapDecorator(
-        ImmutableMap.of("cq:graphqlClient", "default", "magentoStore", "my-store"));
+    private static final ValueMap MOCK_CONFIGURATION = new com.adobe.cq.commerce.common.ValueMapDecorator(
+        ImmutableMap.of("cq:graphqlClient", "default", "magentoStore",
+            "my-store"));
 
     private static final ComponentsConfiguration MOCK_CONFIGURATION_OBJECT = new ComponentsConfiguration(MOCK_CONFIGURATION);
 
@@ -106,6 +107,7 @@ public class ProductImplTest {
     private Resource productResource;
     private ProductImpl productModel;
     private ProductInterface product;
+    private StoreConfig storeConfig;
     private HttpClient httpClient;
 
     @Before
@@ -118,6 +120,7 @@ public class ProductImplTest {
 
         Query rootQuery = Utils.getQueryFromResource("graphql/magento-graphql-product-result.json");
         product = rootQuery.getProducts().getItems().get(0);
+        storeConfig = rootQuery.getStoreConfig();
 
         GraphqlClient graphqlClient = new GraphqlClientImpl();
         Whitebox.setInternalState(graphqlClient, "gson", QueryDeserializer.getGson());
@@ -176,14 +179,15 @@ public class ProductImplTest {
 
         Assert.assertEquals(ProductStockStatus.IN_STOCK.equals(product.getStockStatus()), productModel.getInStock().booleanValue());
 
-        Assert.assertEquals(product.getMediaGallery().size(), productModel.getAssets().size());
-        for (int j = 0; j < product.getMediaGallery().size(); j++) {
-            MediaGalleryInterface mge = product.getMediaGallery().get(j);
+        Assert.assertEquals(product.getMediaGalleryEntries().size(), productModel.getAssets().size());
+        String baseMediaPath = storeConfig.getSecureBaseMediaUrl() + "catalog/product";
+        for (int j = 0; j < product.getMediaGalleryEntries().size(); j++) {
+            MediaGalleryEntry mge = product.getMediaGalleryEntries().get(j);
             Asset asset = productModel.getAssets().get(j);
             Assert.assertEquals(mge.getLabel(), asset.getLabel());
             Assert.assertEquals(mge.getPosition(), asset.getPosition());
-            Assert.assertEquals("image", asset.getType());
-            Assert.assertEquals(mge.getUrl(), asset.getPath());
+            Assert.assertEquals(mge.getMediaType(), asset.getType());
+            Assert.assertEquals(baseMediaPath + mge.getFile(), asset.getPath());
         }
 
         Assert.assertTrue(productModel.getGroupedProductItems().isEmpty());
@@ -217,14 +221,15 @@ public class ProductImplTest {
             Assert.assertEquals(ProductStockStatus.IN_STOCK.equals(sp.getStockStatus()), variant.getInStock().booleanValue());
             Assert.assertEquals(sp.getColor(), variant.getColor());
 
-            Assert.assertEquals(sp.getMediaGallery().size(), variant.getAssets().size());
-            for (int j = 0; j < sp.getMediaGallery().size(); j++) {
-                MediaGalleryInterface mge = sp.getMediaGallery().get(j);
+            Assert.assertEquals(sp.getMediaGalleryEntries().size(), variant.getAssets().size());
+            String baseMediaPath = storeConfig.getSecureBaseMediaUrl() + "catalog/product";
+            for (int j = 0; j < sp.getMediaGalleryEntries().size(); j++) {
+                MediaGalleryEntry mge = sp.getMediaGalleryEntries().get(j);
                 Asset asset = variant.getAssets().get(j);
                 Assert.assertEquals(mge.getLabel(), asset.getLabel());
                 Assert.assertEquals(mge.getPosition(), asset.getPosition());
-                Assert.assertEquals("image", asset.getType());
-                Assert.assertEquals(mge.getUrl(), asset.getPath());
+                Assert.assertEquals(mge.getMediaType(), asset.getType());
+                Assert.assertEquals(baseMediaPath + mge.getFile(), asset.getPath());
             }
         }
     }
@@ -321,6 +326,7 @@ public class ProductImplTest {
         String json = Utils.getResource(ProductImpl.PLACEHOLDER_DATA);
         Query rootQuery = QueryDeserializer.getGson().fromJson(json, Query.class);
         product = rootQuery.getProducts().getItems().get(0);
+        storeConfig = rootQuery.getStoreConfig();
 
         testProduct(product, false);
     }
@@ -355,6 +361,7 @@ public class ProductImplTest {
     public void testGroupedProduct() throws IOException {
         Query rootQuery = Utils.getQueryFromResource("graphql/magento-graphql-groupedproduct-result.json");
         product = rootQuery.getProducts().getItems().get(0);
+        storeConfig = rootQuery.getStoreConfig();
 
         Utils.setupHttpResponse("graphql/magento-graphql-groupedproduct-result.json", httpClient, 200);
 
@@ -384,14 +391,6 @@ public class ProductImplTest {
         productModel = context.request().adaptTo(ProductImpl.class);
         Assert.assertNotNull("Product model is not null", productModel);
         Assert.assertTrue(productModel.isVirtualProduct());
-    }
-
-    @Test
-    public void testBundleProduct() throws IOException {
-        Utils.setupHttpResponse("graphql/magento-graphql-bundleproduct-result.json", httpClient, 200);
-        productModel = context.request().adaptTo(ProductImpl.class);
-        Assert.assertNotNull("Product model is not null", productModel);
-        Assert.assertTrue(productModel.isBundleProduct());
     }
 
     @Test
