@@ -38,7 +38,7 @@ const UpdateCustomerShippingAddress = props => {
 
     const handleSubmit = async (formValues) => {
         let targetCountry = countries.find(obj => obj.id == "US");
-        let region = targetCountry.available_regions.find(obj => obj.code === formValues.region_code);
+        let region = targetCountry.available_regions.find(obj => obj.code === formValues.region_code.toUpperCase());
         // 1. update customer billing address
         doUpdateCustomerShippingAddress({
             variables: {
@@ -50,7 +50,7 @@ const UpdateCustomerShippingAddress = props => {
                 lastname: formValues.lastname,
                 postcode: formValues.postcode,
                 region: region.name,
-                region_code: formValues.region_code,
+                region_code: formValues.region_code.toUpperCase(),
                 region_id: region.id,
                 street: formValues.street0,
                 telephone: formValues.telephone,

@@ -115,7 +115,7 @@ const PaymentsFormItems = props => {
                     firstname: formState.values['firstname'],
                     lastname: formState.values['lastname'],
                     postcode: formState.values['postcode'],
-                    region_code: formState.values['region_code'],
+                    region_code: formState.values['region_code'].toUpperCase(),
                     street: formState.values['street'],
                     telephone: formState.values['telephone']
                 };
