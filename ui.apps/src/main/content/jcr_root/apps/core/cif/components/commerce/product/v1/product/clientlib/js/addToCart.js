@@ -25,7 +25,7 @@ class AddToCart {
         let virtual = config.product.dataset.virtual !== undefined;
         let grouped = config.product.dataset.grouped !== undefined;
         let sku = !configurable ? config.product.querySelector(AddToCart.selectors.sku).innerHTML : null;
-
+        // TODO add on 
         this._state = {
             sku,
             attributes: {},

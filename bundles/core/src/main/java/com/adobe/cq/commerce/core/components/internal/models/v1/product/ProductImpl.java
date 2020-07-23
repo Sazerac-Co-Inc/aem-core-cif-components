@@ -164,6 +164,10 @@ public class ProductImpl implements Product {
         return validateUrl(url);
     }
 
+    public String getAlcoholProduct() {
+        return productRetriever.fetchProduct().get("is_alcohol_product").toString();
+    }
+
     @Override
     public String getDescription() {
         return safeDescription(productRetriever.fetchProduct());
