@@ -191,7 +191,7 @@ const UserContextProvider = props => {
     const resetPassword = async email => {
         // get page url and add selector / variable. THIS WILL BREAK WITHOUT US/EN PAGES
         let buildUrl = window.location;
-        let url = buildUrl.origin + "/content/fireball/us/en.resetpassword.html" + "?email=" + email;
+        let url = buildUrl.pathname.replace(".html", ".resetpassword.html") + "?email=" + encodeURIComponent(email);
         let promise = await fetch(url);
     };
 
