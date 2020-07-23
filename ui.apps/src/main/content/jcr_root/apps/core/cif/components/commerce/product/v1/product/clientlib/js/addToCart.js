@@ -25,17 +25,24 @@ class AddToCart {
         let virtual = config.product.dataset.virtual !== undefined;
         let grouped = config.product.dataset.grouped !== undefined;
         let sku = !configurable ? config.product.querySelector(AddToCart.selectors.sku).innerHTML : null;
-        // TODO add on 
+        let alcohol = config.product.querySelector(AddToCart.selectors.alcoholCheckbox) != undefined;
+
         this._state = {
             sku,
             attributes: {},
             configurable,
             virtual,
-            grouped
+            grouped,
+            alcohol
         };
 
         // Disable add to cart if configurable product and no variant was selected
         if (this._state.configurable && !this._state.sku) {
+            this._element.disabled = true;
+        }
+
+        // Disable add to cart if alcohol product
+        if (this._state.alcohol) {
             this._element.disabled = true;
         }
 
@@ -52,7 +59,27 @@ class AddToCart {
 
         // Add click handler to add to cart button
         this._element.addEventListener('click', this._onAddToCart.bind(this));
+
+
+        // Listen to alcohol checkbox updates on product
+        config.product.addEventListener(AddToCart.events.alcoholBoxChecked, this._onAlcoholChecked.bind(this));
+
+
     }
+
+    /**
+     *  Alcohol checkbox changed event handler
+     */
+     _onAlcoholChecked(event) {
+        if (event.detail.checked) {
+            this._element.disabled = false;
+            return;
+        } else {
+            this._element.disabled = true;
+            return;
+        }
+     }
+
 
     /**
      * Variant changed event handler.
@@ -116,12 +143,14 @@ AddToCart.selectors = {
     self: '.productFullDetail__cartActions button',
     sku: '.productFullDetail__details [role=sku]',
     quantity: '.productFullDetail__quantity select',
-    product: '[data-cmp-is=product]'
+    product: '[data-cmp-is=product]',
+    alcoholCheckbox: '.productFullDetail__isAlcoholProduct'
 };
 
 AddToCart.events = {
     variantChanged: 'variantchanged',
-    addToCart: 'aem.cif.add-to-cart'
+    addToCart: 'aem.cif.add-to-cart',
+    alcoholBoxChecked: 'sazerac.cif.is-alcohol'
 };
 
 (function(document) {
