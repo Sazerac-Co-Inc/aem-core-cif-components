@@ -200,8 +200,8 @@ const UserContextProvider = props => {
             let origin = window.location.origin;
             let port = window.location.port;
 
-            //call home page....needs to make sure we are setup {content/site/us/en}
-            buildUrl = origin + "/en.resetpassword.html?email=" + encodeURIComponent(email);
+            //call changepassword....needs to make sure we are setup {content/site/us/en/changepassword}
+            buildUrl = origin + "/changepassword.resetpassword.html?email=" + encodeURIComponent(email);
         }
 
         let url = buildUrl;
