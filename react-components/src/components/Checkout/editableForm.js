@@ -84,7 +84,7 @@ const EditableForm = props => {
     };
 
     const handleSubmitPaymentsForm = async args => {
-        console.log("handleSubmitPaymentsForm");
+        cartDispatch({ type: 'beginLoading' });
         try {
             let billingAddressVariables = {
                 cartId: cartId,
@@ -160,6 +160,7 @@ const EditableForm = props => {
                     ...paymentResult.data.setPaymentMethodOnCart.cart.selected_payment_method
                 }
             });
+            cartDispatch({ type: 'endLoading' });
         } catch (err) {
             cartDispatch({ type: 'error', error: err.toString() });
         }
