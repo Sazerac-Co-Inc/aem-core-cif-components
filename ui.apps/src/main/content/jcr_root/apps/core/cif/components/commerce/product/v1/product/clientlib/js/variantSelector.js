@@ -168,6 +168,16 @@ class VariantSelector {
             this._setHash(this._state.variant.sku);
         }
 
+        // Sagepath addition to disable add to cart button when a variant is out of stock
+        const addToCartButton = document.querySelector(".productFullDetail__cartActions button");
+        if (!this._state.variant.inStock) {
+            addToCartButton.disabled = true;
+            addToCartButton.firstElementChild.innerText = "Out of Stock";
+        } else {
+          addToCartButton.disabled = false;
+          addToCartButton.firstElementChild.innerText = "Add to Cart";
+        }
+
         // Don't reload page on click
         event.preventDefault();
     }
