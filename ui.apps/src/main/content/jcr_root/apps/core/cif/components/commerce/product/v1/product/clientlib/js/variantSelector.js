@@ -68,6 +68,7 @@ class VariantSelector {
         if (this._state.variant) {
             this._state.attributes = { ...this._state.variant.variantAttributes };
             this._emitVariantChangedEvent();
+            this._disableAddToCart();
         }
     }
 
@@ -142,6 +143,18 @@ class VariantSelector {
         return null;
     }
 
+    // Sagepath addition to disable add to cart button when a variant is out of stock
+    _disableAddToCart() {
+        const addToCartButton = document.querySelector(".productFullDetail__cartActions button");
+        if (!this._state.variant.inStock) {
+            addToCartButton.disabled = true;
+            addToCartButton.firstElementChild.innerText = "Out of Stock";
+        } else {
+          addToCartButton.disabled = false;
+          addToCartButton.firstElementChild.innerText = "Add to Cart";
+        }
+    }
+
     /**
      * Click event handler for a variant selection button that selects a new
      * variant and stores it in the internal state and dispatches a variantchanged
@@ -167,7 +180,7 @@ class VariantSelector {
         if (this._state.variant) {
             this._setHash(this._state.variant.sku);
         }
-
+        this._disableAddToCart();
         // Don't reload page on click
         event.preventDefault();
     }

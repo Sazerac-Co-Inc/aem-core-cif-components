@@ -45,7 +45,7 @@ const AddressForm = props => {
                     firstname: defaultShipping.firstname,
                     lastname: defaultShipping.lastname,
                     postcode: defaultShipping.postcode,
-                    region_code: defaultShipping.region.region_code,
+                    region_code: defaultShipping.region.region_code.toUpperCase(),
                     street0: defaultShipping.street[0],
                     telephone: defaultShipping.telephone
                 }

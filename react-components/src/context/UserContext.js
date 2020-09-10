@@ -23,6 +23,7 @@ import { resetCustomerCart as resetCustomerCartAction, signOutUser as signOutUse
 import MUTATION_REVOKE_TOKEN from '../queries/mutation_revoke_customer_token.graphql';
 import QUERY_CUSTOMER_DETAILS from '../queries/query_customer_details.graphql';
 import QUERY_CUSTOMER_ORDERS from '../queries/query_customer_orders.graphql';
+import NavigationContext from './NavigationContext';
 
 const UserContext = React.createContext();
 
@@ -84,13 +85,6 @@ const reducerFactory = () => {
                     ...state,
                     inProgress: false,
                     createAccountError: parseError(action.error)
-                };
-            }
-            case 'createAccountEarly': {
-                return {
-                    ...state,
-                    inProgress: false,
-                    createAccountError: "The account is created, check your email and confirm your account."
                 };
             }
             case 'signOut':
@@ -196,9 +190,21 @@ const UserContextProvider = props => {
     };
 
     const resetPassword = async email => {
-        // get page url and add selector / variable. THIS WILL BREAK WITHOUT US/EN PAGES
-        let buildUrl = window.location;
-        let url = buildUrl.origin + "/content/fireball/us/en.resetpassword.html" + "?email=" + email;
+
+        let buildUrl = "";
+        //if endswith
+        if(window.location.pathname.toLowerCase().endsWith(".html")){
+            buildUrl = window.location.pathname.replace(".html", ".resetpassword.html") + "?email=" + encodeURIComponent(email);
+        }else{
+            // get page url and add selector / variable. THIS WILL BREAK WITHOUT US/EN PAGES
+            let origin = window.location.origin;
+            let port = window.location.port;
+
+            //call changepassword....needs to make sure we are setup {content/site/us/en/changepassword}
+            buildUrl = origin + "/changepassword.resetpassword.html?email=" + encodeURIComponent(email);
+        }
+
+        let url = buildUrl;
         let promise = await fetch(url);
     };
 

@@ -177,12 +177,6 @@ export const addCoupon = async payload => {
         });
         document.dispatchEvent(addCouponEvent);
     } catch (error) {
-        // event for datalayer
-        const addCouponErrorEvent = new CustomEvent('sazerac.cif.add-coupon-error', {
-            bubbles: true,
-            detail: { event: 'sazerac.cif.add-coupon-error', cartId: cartId, couponCode: couponCode, error: error }
-        });
-        document.dispatchEvent(addCouponErrorEvent);
         dispatch({ type: 'couponError', error: parseError(error) });
     }
 

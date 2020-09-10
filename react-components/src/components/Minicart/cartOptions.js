@@ -13,8 +13,8 @@
  ******************************************************************************/
 
 import React, { useState } from 'react';
-import { useMutation } from '@apollo/react-hooks';
 import { useTranslation } from 'react-i18next';
+import { useMutation } from '@apollo/react-hooks';
 
 import { useAwaitQuery } from '../../utils/hooks';
 
@@ -25,7 +25,6 @@ import classes from './cartOptions.css';
 
 import CART_DETAILS_QUERY from '../../queries/query_cart_details.graphql';
 import MUTATION_UPDATE_CART_ITEM from '../../queries/mutation_update_cart_item.graphql';
-
 import useCartOptions from './useCartOptions';
 
 const CartOptions = () => {

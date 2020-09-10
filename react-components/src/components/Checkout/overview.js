@@ -94,7 +94,7 @@ const Overview = props => {
                 <Section label={t('checkout:total', 'TOTAL')}>
                     <Price currencyCode={cart.prices.grand_total.currency} value={cart.prices.grand_total.value || 0} /> <span className="total-includes">(includes ${taxTotal} Tax, ${shippingTotal} Shipping)</span>
                     <br />
-                    <span>{cart.items.length} Items</span>
+                    <span>{cart.total_quantity} Items</span>
                 </Section>
             </div>
             <div className={classes.footer}>

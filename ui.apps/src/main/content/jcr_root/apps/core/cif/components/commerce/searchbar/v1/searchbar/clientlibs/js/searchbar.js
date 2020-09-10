@@ -26,36 +26,28 @@
 
     class Searchbar {
         constructor(props) {
-			try{
-				this._classes = {
-					open: 'searchBar__root_open'
-				};
+            this._classes = {
+                open: 'searchBar__root_open'
+            };
 
-				this._searchBarRoot = document.querySelector(Searchbar.selectors.searchBarRoot);
-				
-				if(this._searchBarRoot !== null){ 
-					this._searchBox = this._searchBarRoot.querySelector(Searchbar.selectors.searchBox);
+            this._searchBarRoot = document.querySelector(Searchbar.selectors.searchBarRoot);
+            this._searchBox = this._searchBarRoot.querySelector(Searchbar.selectors.searchBox);
 
-					let stateObject = {};
-					if (props && props.params) {
-						stateObject.visible = !!props.params.query;
-						stateObject.query = props.params.query;
-					}
+            let stateObject = {};
+            if (props && props.params) {
+                stateObject.visible = !!props.params.query;
+                stateObject.query = props.params.query;
+            }
 
-					this._state = stateObject;
+            this._state = stateObject;
 
-					if (stateObject.visible) {
-						this._show();
-						this._searchBox.value = stateObject.query;
-						this._showResetButton();
-					}
+            if (stateObject.visible) {
+                this._show();
+                this._searchBox.value = stateObject.query;
+                this._showResetButton();
+            }
 
-					this._installListeners();
-				}
-			
-			}catch(err)
-			{}
-
+            this._installListeners();
         }
 
         _getOrCreateResetButton() {
