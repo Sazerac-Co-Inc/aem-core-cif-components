@@ -82,4 +82,6 @@ public interface Product {
     AbstractProductRetriever getProductRetriever();
 
     String getDrizlyUrl();
+
+    String getAlcoholProduct();
 }
