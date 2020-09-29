@@ -118,6 +118,14 @@ class AddToCart {
         // the sku of each product is now read from the 'data-product-sku' attribute of each select element
 
         const selections = Array.from(document.querySelectorAll(AddToCart.selectors.quantity));
+        let confOptions = [];
+        let attrElements = document.querySelectorAll('.option__root');
+        var i;
+        for (i = 0; i < attrElements.length; i++) {
+            let attID = attrElements[i].querySelector('.tileList__root').getAttribute('data-id');
+            let selectedOption = attrElements[i].querySelector('.tile__root_selected span').innerHTML;
+            confOptions.push([attID, selectedOption]);
+        }
         let items = selections
             .filter(selection => {
                 return parseInt(selection.value) > 0;
@@ -126,13 +134,14 @@ class AddToCart {
                 return {
                     sku: selection.dataset.productSku,
                     virtual: this._state.grouped ? selection.dataset.virtual !== undefined : this._state.virtual,
-                    quantity: selection.value
+                    quantity: selection.value,
+                    configurableOptions: confOptions
                 };
             });
 
         if (items.length > 0 && window.CIF) {
             const customEvent = new CustomEvent(AddToCart.events.addToCart, {
-                detail: items
+                detail: items,
             });
             document.dispatchEvent(customEvent);
         }
