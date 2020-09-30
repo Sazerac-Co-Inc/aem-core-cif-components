@@ -51,6 +51,7 @@ export default ({ queries }) => {
         let parentSkuEl = document.getElementById('parentSku');
         let configurableCartItem = null;
 
+        // TODO create mapper?
         if (parentSkuEl) {
             let parentSku = parentSkuEl.getAttribute('data-parent-sku');
             if (physicalCartItems.length > 0) {
