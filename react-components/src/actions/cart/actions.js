@@ -92,12 +92,32 @@ export const getCartDetails = async payload => {
             detail: { event: 'sazerac.cif.cart-details', cart: data.cart }
         });
         document.dispatchEvent(cartDetailsEvent);
-
+        if (data.cart.items) {
+            let inStoreOnly = checkInStoreOnly(data.cart.items);
+            dispatch({ type: inStoreOnly ? 'inStoreOnly' : 'useShipping', useCartShipping: inStoreOnly });
+        }
         dispatch({ type: 'cart', cart: data.cart });
     } catch (error) {
         dispatch({ type: 'error', error: error.toString() });
     }
 };
+
+/**
+ * 
+ * Sagepath Custom -   
+ */
+function checkInStoreOnly(items) {
+    let inStoreOnly = false;
+    for (let i = 0; i < items.length; i++) {
+        if (!items[i].product.is_alcohol_product) {
+            inStoreOnly = false;
+            return inStoreOnly
+        } else if (items[i].product.is_alcohol_product) {
+            inStoreOnly = true;
+        }
+    }
+    return inStoreOnly;
+}
 
 /**
  * Removes an item from the cart
