@@ -51,18 +51,23 @@ export default ({ queries }) => {
         let parentSkuEl = document.getElementById('parentSku');
         let configurableCartItem = null;
 
+        // TODO create mapper?
         if (parentSkuEl) {
             let parentSku = parentSkuEl.getAttribute('data-parent-sku');
             if (physicalCartItems.length > 0) {
-                configurableCartItem = [
-                    {
-                        parent_sku: parentSku,
-                        data: {
-                            quantity: physicalCartItems[0].data.quantity,
-                            sku: physicalCartItems[0].data.sku
-                        }
-                    }
-                ]
+                configurableCartItem = {
+                        detail: [
+                            {
+                                parent_sku: parentSku,
+                                data: {
+                                   quantity: physicalCartItems[0].data.quantity,
+                                   sku: physicalCartItems[0].data.sku
+                                }
+                            }
+                        ],
+                        configurableOptions: event.detail[0].configurableOptions
+
+                }
 
             }
         }

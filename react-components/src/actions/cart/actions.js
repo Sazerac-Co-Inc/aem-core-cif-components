@@ -44,8 +44,10 @@ export const addItemToCart = async payload => {
         }
 
         let variables = { cartId, cartItems: physicalCartItems };
-        if (configurableCartItem && configurableCartItem.length > 0) {
-            variables = { cartId, cartItems: configurableCartItem };
+        let configurableOptions = null;
+        if (configurableCartItem && configurableCartItem) {
+            variables = { cartId, cartItems: configurableCartItem.detail };
+            configurableOptions = configurableCartItem.configurableOptions;
         } else if (physicalCartItems.length > 0 && virtualCartItems.length > 0 && configurableCartItem.length < 1) {
             variables = { cartId, virtualCartItems, simpleCartItems: physicalCartItems };
         } else if (virtualCartItems.length > 0 && configurableCartItem.length < 1) {
@@ -56,7 +58,7 @@ export const addItemToCart = async payload => {
         // event for datalayer
         const addItemToCartEvent = new CustomEvent('sazerac.cif.cart-add-item', {
             bubbles: true,
-            detail: { event: 'sazerac.cif.cart-add-item', variables }
+            detail: { event: 'sazerac.cif.cart-add-item', variables,  configurableOptions}
         });
         document.dispatchEvent(addItemToCartEvent);
         dispatch({ type: 'cartId', cartId });
