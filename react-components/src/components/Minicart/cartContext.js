@@ -25,7 +25,8 @@ export const initialState = {
     cartId: null,
     cart: null,
     errorMessage: null,
-    couponError: null
+    couponError: null,
+    useCartShipping: true
 };
 
 export const reducerFactory = setCartCookie => {
@@ -106,7 +107,16 @@ export const reducerFactory = setCartCookie => {
                     ...state,
                     couponError: action.error
                 };
-
+            case 'inStoreOnly':
+                return {
+                    ...state,
+                    useCartShipping: false
+                };
+            case 'useShipping':
+                return {
+                    ...state,
+                    useCartShipping: true
+                };
             default:
                 return state;
         }

@@ -40,13 +40,12 @@ import { useUserContext } from '../../context/UserContext';
 const EditableForm = props => {
 
     const { submitShippingMethod, submitting, isAddressInvalid, invalidAddressMessage } = props;
-    const [{ cart, cartId }, cartDispatch] = useCartState();
+    const [{ cart, cartId, useCartShipping }, cartDispatch] = useCartState();
     const [{ editing, shippingAddress, shippingMethod, paymentMethod, billingAddress }, dispatch] = useCheckoutState();
     const { error: countriesError, countries } = useCountries();
     const [{ isSignedIn }] = useUserContext();
     const cartDetailsQuery = useAwaitQuery(CART_DETAILS_QUERY);
     const [setShippingAddressesOnCart, { data, error }] = useMutation(MUTATION_SET_SHIPPING_ADDRESS);
-
     const [setBraintreePaymentMethodOnCart] = useMutation(MUTATION_SET_BRAINTREE_PAYMENT_METHOD);
     const [setAnetPaymentMethodOnCart] = useMutation(MUTATION_SET_ANET_PLABS_PAYMENT_METHOD);
     const [setPaymentMethodOnCart] = useMutation(MUTATION_SET_PAYMENT_METHOD);
@@ -100,6 +99,10 @@ const EditableForm = props => {
                     countryCode: shippingAddress.country,
                     region: shippingAddress.region.code
                 };
+            }
+            // Sagepath - allow pickup only carts to avoid shipping address fields but still satisfy graphql mutations.
+            if (!useCartShipping) {
+                handleSubmitAddressForm(args.billingAddress);
             }
 
             // If virtual and guest cart, set email with payment address, since no shipping address set
@@ -223,7 +226,7 @@ const EditableForm = props => {
             return (
                 <PaymentsForm
                     cart={cart}
-                    allowSame={!cart.is_virtual}
+                    allowSame={!cart.is_virtual && useCartShipping}
                     cancel={handleCancel}
                     countries={countries}
                     initialValues={billingAddress}

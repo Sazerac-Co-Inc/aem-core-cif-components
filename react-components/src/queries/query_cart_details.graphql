@@ -100,6 +100,7 @@ query cartDetails($cartId: String!) {
             }
             product {
                 name
+                is_alcohol_product
                 thumbnail {
                     url
                 }
