@@ -33,7 +33,7 @@ export const initialCheckoutState = {
 export const checkoutReducer = (state, action) => {
     switch (action.type) {
         case 'beginCheckout':
-            sendEventToDataLayer('', 'sazerac.cif.begin-checkout');
+            sendEventToDataLayer({ event: 'sazerac.cif.begin-checkout' });
             return {
                 ...state,
                 flowState: 'form'

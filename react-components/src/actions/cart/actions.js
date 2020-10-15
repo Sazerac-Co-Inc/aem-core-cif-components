@@ -177,6 +177,7 @@ export const addCoupon = async payload => {
         sendEventToDataLayer({ event: 'sazerac.cif.add-coupon', cartId: cartId, couponCode: couponCode });
     } catch (error) {
         dispatch({ type: 'couponError', error: parseError(error) });
+        sendEventToDataLayer({ event: 'sazerac.cif.add-coupon-error', error });
     }
 
     await getCartDetails({ cartDetailsQuery, dispatch, cartId });

@@ -150,7 +150,7 @@ export const validatePassword = value => {
 export const validateConfirmPassword = (value, values, passwordKey = 'password') => {
     if (value != values[passwordKey]) {
         let error = 'Passwords must match.';
-        sendEventToDataLayer({ event: 'sazerac.cif.validation.validate-zip', error });
+        sendEventToDataLayer({ event: 'sazerac.cif.validation.validate-confirm-password', error });
 
         return error;
     }
