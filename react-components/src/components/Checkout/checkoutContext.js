@@ -14,6 +14,7 @@
 
 import React, { createContext, useContext, useReducer } from 'react';
 import { string, func, shape, object } from 'prop-types';
+import { sendEventToDataLayer } from '../../utils/dataLayer';
 
 export const initialCheckoutState = {
     flowState: 'cart',
@@ -32,12 +33,7 @@ export const initialCheckoutState = {
 export const checkoutReducer = (state, action) => {
     switch (action.type) {
         case 'beginCheckout':
-            // event for datalayer
-            const beginCheckoutEvent = new CustomEvent('sazerac.cif.begin-checkout', {
-                bubbles: true,
-                detail: { event: 'sazerac.cif.begin-checkout' }
-            });
-            document.dispatchEvent(beginCheckoutEvent);
+            sendEventToDataLayer({ event: 'sazerac.cif.begin-checkout' });
             return {
                 ...state,
                 flowState: 'form'

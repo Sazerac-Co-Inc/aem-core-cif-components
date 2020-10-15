@@ -16,6 +16,7 @@ import { useUserContext } from '../../context/UserContext';
 import { useMutation } from '@apollo/react-hooks';
 import { useCartState } from '../Minicart/cartContext';
 import { useAwaitQuery, useCookieValue } from '../../utils/hooks';
+import { sendEventToDataLayer } from '../../utils/dataLayer';
 import { mergeCarts } from '../../actions/cart';
 
 import MUTATION_MERGE_CARTS from '../../queries/mutation_merge_carts.graphql';
@@ -81,12 +82,7 @@ export const useSignin = () => {
             document.dispatchEvent(signInEvent);
         } catch (e) {
             setError(e);
-            // event for datalayer
-            const signInErrorEvent = new CustomEvent('sazerac.cif.sign-in-error', {
-                bubbles: true,
-                detail: { event: 'sazerac.cif.sign-in-error', error: e }
-            });
-            document.dispatchEvent(signInErrorEvent);
+            sendEventToDataLayer({ event: 'sazerac.cif.sign-in-error', error: e });
         }
         setInProgress(false);
     };

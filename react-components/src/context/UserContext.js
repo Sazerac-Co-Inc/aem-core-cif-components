@@ -18,6 +18,7 @@ import { useCookieValue } from '../utils/hooks';
 import { useMutation } from '@apollo/react-hooks';
 import parseError from '../utils/parseError';
 import { useAwaitQuery } from '../utils/hooks';
+import { sendEventToDataLayer } from '../utils/dataLayer';
 import { resetCustomerCart as resetCustomerCartAction, signOutUser as signOutUserAction } from '../actions/user';
 
 import MUTATION_REVOKE_TOKEN from '../queries/mutation_revoke_customer_token.graphql';
@@ -193,9 +194,9 @@ const UserContextProvider = props => {
 
         let buildUrl = "";
         //if endswith
-        if(window.location.pathname.toLowerCase().endsWith(".html")){
+        if (window.location.pathname.toLowerCase().endsWith(".html")) {
             buildUrl = window.location.pathname.replace(".html", ".resetpassword.html") + "?email=" + encodeURIComponent(email);
-        }else{
+        } else {
             // get page url and add selector / variable. THIS WILL BREAK WITHOUT US/EN PAGES
             let origin = window.location.origin;
             let port = window.location.port;
@@ -214,12 +215,7 @@ const UserContextProvider = props => {
             const { data: customerData } = await fetchCustomerDetails({ fetchPolicy: 'no-cache' });
             const { data: orderData } = await fetchCustomerOrders({ fetchPolicy: 'no-cache' });
             dispatch({ type: 'setUserDetails', userDetails: customerData.customer, userOrders: orderData.customerOrders });
-            // event for datalayer
-            const customerDetailsEvent = new CustomEvent('sazerac.cif.customer-details', {
-                bubbles: true,
-                detail: { event: 'sazerac.cif.customer-details', cart: customerData }
-            });
-            document.dispatchEvent(customerDetailsEvent);
+            sendEventToDataLayer({ event: 'sazerac.cif.customer-details', cart: customerData });
         } catch (error) {
             dispatch({ type: 'error', error });
         }

@@ -16,6 +16,7 @@ import { bool, string } from 'prop-types';
 import { useMutation } from '@apollo/react-hooks';
 
 import { useCountries, useAwaitQuery } from '../../utils/hooks';
+import { sendEventToDataLayer } from '../../utils/dataLayer';
 import { getCartDetails } from '../../actions/cart';
 import AddressForm from './addressForm';
 import PaymentsForm from './paymentsForm';
@@ -72,6 +73,7 @@ const EditableForm = props => {
             await setShippingAddressesOnCart({ variables: { cartId: cartId, countryCode: 'US', ...formValues } });
             await getCartDetails({ cartDetailsQuery, dispatch: cartDispatch, cartId });
         } catch (err) {
+            sendEventToDataLayer({ event: 'sazerac.cif.checkout-shipping-address-error', error: err.toString() });
             cartDispatch({ type: 'error', error: err.toString() });
         } finally {
             cartDispatch({ type: 'endLoading' });
@@ -165,6 +167,7 @@ const EditableForm = props => {
             });
             cartDispatch({ type: 'endLoading' });
         } catch (err) {
+            sendEventToDataLayer({ event: 'sazerac.cif.checkout-payment-method-graphql-error', error: err.toString() });
             cartDispatch({ type: 'error', error: err.toString() });
         }
     };
@@ -175,6 +178,7 @@ const EditableForm = props => {
             await setShippingMethodsOnCart({ variables: { cartId: cartId, ...formValues.shippingMethod } });
             await getCartDetails({ cartDetailsQuery, dispatch: cartDispatch, cartId });
         } catch (err) {
+            sendEventToDataLayer({ event: 'sazerac.cif.checkout-shipping-method-error', error: err.toString() });
             cartDispatch({ type: 'error', error: err.toString() });
         } finally {
             cartDispatch({ type: 'endLoading' });
