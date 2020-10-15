@@ -26,6 +26,7 @@ import { useCheckoutState } from './checkoutContext';
 
 import classes from './paymentsForm.css';
 import { isRequired, hasLengthExactly, validateRegionCode, validatePhoneUS, validateZip, validateEmail } from '../../utils/formValidators';
+import { sendEventToDataLayer } from '../../utils/dataLayer';
 import combine from '../../utils/combineValidators';
 
 /**
@@ -237,6 +238,7 @@ const PaymentsForm = props => {
                 })
                 .catch(error => {
                     console.error(error);
+                    sendEventToDataLayer({ event: 'sazerac.cif.checkout-accept.js-error', error });
                     formApi.validate();
                 })
         }

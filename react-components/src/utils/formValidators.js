@@ -11,12 +11,15 @@
  *    governing permissions and limitations under the License.
  *
  ******************************************************************************/
-
+import { sendEventToDataLayer } from '../utils/dataLayer';
 const SUCCESS = undefined;
 
 export const hasLengthAtLeast = (value, values, minimumLength) => {
     if (!value || value.length < minimumLength) {
-        return `Must contain at least ${minimumLength} character(s).`;
+        let error = `Must contain at least ${minimumLength} character(s).`;
+        sendEventToDataLayer({ event: 'sazerac.cif.validation.has-length-at-least-error', error });
+
+        return error;
     }
 
     return SUCCESS;
@@ -24,7 +27,10 @@ export const hasLengthAtLeast = (value, values, minimumLength) => {
 
 export const hasLengthAtMost = (value, values, maximumLength) => {
     if (value && value.length > maximumLength) {
-        return `Must not exceed ${maximumLength} character(s).`;
+        let error = `Must not exceed ${maximumLength} character(s).`;
+        sendEventToDataLayer({ event: 'sazerac.cif.validation.has-length-at-most-error', error });
+
+        return error;
     }
 
     return SUCCESS;
@@ -32,41 +38,71 @@ export const hasLengthAtMost = (value, values, maximumLength) => {
 
 export const hasLengthExactly = (value, values, length) => {
     if (value && value.length !== length) {
-        return `Must contain exactly ${length} character(s).`;
+        let error = `Must contain exactly ${length} character(s).`;
+        sendEventToDataLayer({ event: 'sazerac.cif.validation.has-length-exactly-error', error });
+
+        return error;
     }
 
     return SUCCESS;
 };
 
 export const isRequired = value => {
-    return (value || '').trim() ? SUCCESS : 'The field is required.';
+    if (!(value || '').trim()) {
+        let error = 'The field is required.';
+        sendEventToDataLayer({ event: 'sazerac.cif.validation.is-required-error', error });
+
+        return error;
+    }
+    return SUCCESS;
 };
 
 export const validatePhoneUS = value => {
     const regex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/
-    return regex.test(value) ? SUCCESS : 'Please enter a valid phone number (Ex: xxx-xxx-xxxx).';
+    if (!regex.test(value)) {
+        let error = 'Please enter a valid phone number (Ex: xxx-xxx-xxxx).';
+        sendEventToDataLayer({ event: 'sazerac.cif.validation.validate-phone-us', error });
+
+        return error;
+    }
+    return SUCCESS;
 }
 
 export const validateEmail = value => {
     const regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
-    return regex.test(value) ? SUCCESS : 'Please enter a valid email address (Ex: johndoe@domain.com).';
+    if (!regex.test(value)) {
+        let error = 'Please enter a valid email address (Ex: johndoe@domain.com).';
+        sendEventToDataLayer({ event: 'sazerac.cif.validation.validate-email', error });
+
+        return error;
+    }
+    return SUCCESS;
 };
 
 export const validateRegionCode = (value, values, countries) => {
     const country = countries.find(({ id }) => id === 'US');
 
     if (!country) {
-        return 'Country "US" is not an available country.';
+        let error = 'Country "US" is not an available country.';
+        sendEventToDataLayer({ event: 'sazerac.cif.validation.validate-region-code', error });
+
+        return error;
     }
     const { available_regions: regions } = country;
 
     if (!(Array.isArray(regions) && regions.length)) {
-        return 'Country "US" does not contain any available regions.';
+        let error = 'Country "US" does not contain any available regions.';
+        sendEventToDataLayer({ event: 'sazerac.cif.validation.validate-region-code', error });
+
+        return error;
     }
     const region = regions.find(({ code }) => code === value.toUpperCase());
     if (!region) {
-        return `State "${value}" is not an valid state abbreviation (Ex: LA).`;
+        let error = `State "${value}" is not an valid state abbreviation (Ex: LA).`;
+        sendEventToDataLayer({ event: 'sazerac.cif.validation.validate-region-code', error });
+
+        return error;
     }
 
     return SUCCESS;
@@ -75,7 +111,13 @@ export const validateRegionCode = (value, values, countries) => {
 export const validateZip = value => {
     const regex = /^\d{5}$|^\d{5}-\d{4}$/;
 
-    return regex.test(value) ? SUCCESS : 'Please enter a valid zip code.';
+    if (!regex.test(value)) {
+        let error = 'Please enter a valid zip code.';
+        sendEventToDataLayer({ event: 'sazerac.cif.validation.validate-zip', error });
+
+        return error;
+    }
+    return SUCCESS;
 };
 
 
@@ -96,12 +138,21 @@ export const validatePassword = value => {
     }
 
     if (Object.values(count).filter(Boolean).length < 3) {
-        return 'A password must contain at least 3 of the following: lowercase, uppercase, digits, special characters.';
+        let error = 'A password must contain at least 3 of the following: lowercase, uppercase, digits, special characters.';
+        sendEventToDataLayer({ event: 'sazerac.cif.validation.validate-password', error });
+
+        return error;
     }
 
     return SUCCESS;
 };
 
 export const validateConfirmPassword = (value, values, passwordKey = 'password') => {
-    return value === values[passwordKey] ? SUCCESS : 'Passwords must match.';
+    if (value != values[passwordKey]) {
+        let error = 'Passwords must match.';
+        sendEventToDataLayer({ event: 'sazerac.cif.validation.validate-zip', error });
+
+        return error;
+    }
+    return SUCCESS;
 };

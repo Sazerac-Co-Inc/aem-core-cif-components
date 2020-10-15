@@ -14,6 +14,7 @@
 import { useMutation } from '@apollo/react-hooks';
 import { useUserContext } from '../../context/UserContext';
 import { useNavigationContext } from '../../context/NavigationContext';
+import { sendEventToDataLayer } from '../../utils/dataLayer';
 
 import MUTATION_CREATE_CUSTOMER from '../../queries/mutation_create_customer.graphql';
 
@@ -35,20 +36,11 @@ export default () => {
             });
             dispatch({ type: 'postCreateAccount', accountEmail: email });
             showAccountCreated();
-            // event for datalayer
-            const createAccountEvent = new CustomEvent('sazerac.cif.create-account', {
-                bubbles: true,
-                detail: { event: 'sazerac.cif.create-account' }
-            });
-            document.dispatchEvent(createAccountEvent);
+            sendEventToDataLayer({ event: 'sazerac.cif.create-account' });
+
         } catch (error) {
             dispatch({ type: 'createAccountError', error });
-            // event for datalayer
-            const createAccountErrorEvent = new CustomEvent('sazerac.cif.create-account-error', {
-                bubbles: true,
-                detail: { event: 'sazerac.cif.create-account-error', error: error }
-            });
-            document.dispatchEvent(createAccountErrorEvent);
+            sendEventToDataLayer({ event: 'sazerac.cif.create-account-error', error: error });
         }
     };
 
