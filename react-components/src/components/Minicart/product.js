@@ -14,7 +14,7 @@
 import React, { useMemo, useCallback } from 'react';
 import { number, shape, object, string } from 'prop-types';
 import { useTranslation } from 'react-i18next';
-
+import { List } from '@magento/peregrine';
 import classes from './product.css';
 
 import Price from '../Price';
@@ -36,19 +36,12 @@ const Product = props => {
     const { thumbnail, name } = product;
     const [, { removeItem, editItem }] = useProduct({ item });
 
-    // TODO update to work with multiple configurations
-    function ProductSize() {
-        if (item.configurable_options) {
-            let optionLabel = item.configurable_options[0].option_label;
-            let optionValue = item.configurable_options[0].value_label;
-            return (
-                <div className="product__size">
-                    <span>{optionLabel}: </span><span>{optionValue}</span>
-                </div>
-            );
-        } else {
-            return null;
-        }
+    function ProductAttribute(attribute) {
+        return (
+            <li className={classes.size}>
+                <span>{attribute.item.option_label}: </span><span>{attribute.item.value_label}</span>
+            </li>
+        );
     }
 
     let { price, row_total } = prices;
@@ -69,7 +62,16 @@ const Product = props => {
         <li className={classes.root} data-testid="cart-item">
             {productImage}
             <div className={classes.name}>{name}</div>
-            <ProductSize />
+            {item.configurable_options &&
+                <List
+                    className={classes.attributes}
+                    render="ul"
+                    items={item.configurable_options}
+                    getItemKey={item => item.attribute_code}
+                    renderItem={itemProps => {
+                        return <ProductAttribute item={itemProps.item} />;
+                    }}></List>
+            }
             <div className={classes.quantity}>
                 <div className={classes.quantityRow}>
                     <span>{quantity}</span>

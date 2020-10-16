@@ -24,6 +24,7 @@ import LoadingIndicator from '../LoadingIndicator';
 import Section from './section';
 import Button from '../Button';
 import useOverview from './useOverview';
+import { useCartState } from '../Minicart/cartContext';
 
 /**
  * The Overview component renders summaries for each section of the editable
@@ -39,6 +40,9 @@ const Overview = props => {
     ] = useOverview();
 
     const ready = (cart.is_virtual && paymentMethod) || (shippingAddress && paymentMethod && shippingMethod);
+
+    const [{ useCartShipping }] = useCartState();
+
 
     if (inProgress) {
         return <LoadingIndicator message="Placing order"></LoadingIndicator>;
@@ -57,11 +61,10 @@ const Overview = props => {
         shippingTotal = cart.shipping_addresses[0].selected_shipping_method.amount.value;
     }
 
-    // TODO fix currency code. Currently shows USD, needs to run through function?
     return (
         <Fragment>
             <div className={classes.body}>
-                {!cart.is_virtual && (
+                {(!cart.is_virtual && useCartShipping) && (
                     <Section
                         label={t('checkout:ship-to', 'Ship To')}
                         onClick={() => {
@@ -77,7 +80,7 @@ const Overview = props => {
                         checkoutDispatch({ type: 'setEditing', editing: 'paymentMethod' });
                     }}
                     showEditIcon={!!paymentMethod}
-                    disabled={!cart.is_virtual && !shippingAddress}>
+                    disabled={!cart.is_virtual && !shippingAddress && useCartShipping}>
                     <PaymentMethodSummary classes={classes} />
                 </Section>
                 {!cart.is_virtual && (

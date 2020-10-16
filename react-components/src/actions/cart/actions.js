@@ -44,8 +44,10 @@ export const addItemToCart = async payload => {
         }
 
         let variables = { cartId, cartItems: physicalCartItems };
-        if (configurableCartItem && configurableCartItem.length > 0) {
-            variables = { cartId, cartItems: configurableCartItem };
+        let configurableOptions = null;
+        if (configurableCartItem && configurableCartItem) {
+            variables = { cartId, cartItems: configurableCartItem.detail };
+            configurableOptions = configurableCartItem.configurableOptions;
         } else if (physicalCartItems.length > 0 && virtualCartItems.length > 0 && configurableCartItem.length < 1) {
             variables = { cartId, virtualCartItems, simpleCartItems: physicalCartItems };
         } else if (virtualCartItems.length > 0 && configurableCartItem.length < 1) {
@@ -56,7 +58,7 @@ export const addItemToCart = async payload => {
         // event for datalayer
         const addItemToCartEvent = new CustomEvent('sazerac.cif.cart-add-item', {
             bubbles: true,
-            detail: { event: 'sazerac.cif.cart-add-item', variables }
+            detail: { event: 'sazerac.cif.cart-add-item', variables,  configurableOptions}
         });
         document.dispatchEvent(addItemToCartEvent);
         dispatch({ type: 'cartId', cartId });
@@ -90,12 +92,32 @@ export const getCartDetails = async payload => {
             detail: { event: 'sazerac.cif.cart-details', cart: data.cart }
         });
         document.dispatchEvent(cartDetailsEvent);
-
+        if (data.cart.items) {
+            let inStoreOnly = checkInStoreOnly(data.cart.items);
+            dispatch({ type: inStoreOnly ? 'inStoreOnly' : 'useShipping', useCartShipping: inStoreOnly });
+        }
         dispatch({ type: 'cart', cart: data.cart });
     } catch (error) {
         dispatch({ type: 'error', error: error.toString() });
     }
 };
+
+/**
+ * 
+ * Sagepath Custom -   
+ */
+function checkInStoreOnly(items) {
+    let inStoreOnly = false;
+    for (let i = 0; i < items.length; i++) {
+        if (!items[i].product.is_alcohol_product) {
+            inStoreOnly = false;
+            return inStoreOnly
+        } else if (items[i].product.is_alcohol_product) {
+            inStoreOnly = true;
+        }
+    }
+    return inStoreOnly;
+}
 
 /**
  * Removes an item from the cart
