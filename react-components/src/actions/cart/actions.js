@@ -12,6 +12,7 @@
  *
  ******************************************************************************/
 import parseError from '../../utils/parseError';
+import { sendEventToDataLayer } from '../../utils/dataLayer';
 
 /**
  * Adds an item to the cart. If the cart doesn't exist then it's created
@@ -55,12 +56,8 @@ export const addItemToCart = async payload => {
         }
 
         await addToCartMutation({ variables });
-        // event for datalayer
-        const addItemToCartEvent = new CustomEvent('sazerac.cif.cart-add-item', {
-            bubbles: true,
-            detail: { event: 'sazerac.cif.cart-add-item', variables,  configurableOptions}
-        });
-        document.dispatchEvent(addItemToCartEvent);
+        sendEventToDataLayer({ event: 'sazerac.cif.cart-add-item', variables, configurableOptions });
+
         dispatch({ type: 'cartId', cartId });
         await getCartDetails({ cartDetailsQuery, cartId, dispatch });
     } catch (error) {
@@ -86,12 +83,8 @@ export const getCartDetails = async payload => {
         if (error) {
             throw new Error(error);
         }
-        // event for datalayer
-        const cartDetailsEvent = new CustomEvent('sazerac.cif.cart-details', {
-            bubbles: true,
-            detail: { event: 'sazerac.cif.cart-details', cart: data.cart }
-        });
-        document.dispatchEvent(cartDetailsEvent);
+        sendEventToDataLayer({ event: 'sazerac.cif.cart-details', cart: data.cart });
+
         if (data.cart.items) {
             let inStoreOnly = checkInStoreOnly(data.cart.items);
             dispatch({ type: inStoreOnly ? 'inStoreOnly' : 'useShipping', useCartShipping: inStoreOnly });
@@ -131,13 +124,7 @@ function checkInStoreOnly(items) {
  */
 export const removeItemFromCart = async payload => {
     const { cartDetailsQuery, removeItemMutation, cartId, itemId, dispatch } = payload;
-
-    // event for datalayer
-    const removalEvent = new CustomEvent('sazerac.cif.cart-removal', {
-        bubbles: true,
-        detail: { event: 'sazerac.cif.cart-removal', cartId: cartId, itemId: itemId }
-    });
-    document.dispatchEvent(removalEvent);
+    sendEventToDataLayer({ event: 'sazerac.cif.cart-removal', cartId: cartId, itemId: itemId });
 
     try {
         await removeItemMutation({
@@ -164,12 +151,7 @@ export const removeCoupon = async payload => {
 
     try {
         await removeCouponMutation({ variables: { cartId, couponCode } });
-        // event for datalayer
-        const removeCouponEvent = new CustomEvent('sazerac.cif.remove-coupon', {
-            bubbles: true,
-            detail: { event: 'sazerac.cif.remove-coupon', cartId: cartId, couponCode: couponCode }
-        });
-        document.dispatchEvent(removeCouponEvent);
+        sendEventToDataLayer({ event: 'sazerac.cif.remove-coupon', cartId: cartId, couponCode: couponCode });
     } catch (error) {
         dispatch({ type: 'couponError', error: parseError(error) });
     }
@@ -192,14 +174,10 @@ export const addCoupon = async payload => {
 
     try {
         await addCouponMutation({ variables: { cartId, couponCode } });
-        // event for datalayer
-        const addCouponEvent = new CustomEvent('sazerac.cif.add-coupon', {
-            bubbles: true,
-            detail: { event: 'sazerac.cif.add-coupon', cartId: cartId, couponCode: couponCode }
-        });
-        document.dispatchEvent(addCouponEvent);
+        sendEventToDataLayer({ event: 'sazerac.cif.add-coupon', cartId: cartId, couponCode: couponCode });
     } catch (error) {
         dispatch({ type: 'couponError', error: parseError(error) });
+        sendEventToDataLayer({ event: 'sazerac.cif.add-coupon-error', error });
     }
 
     await getCartDetails({ cartDetailsQuery, dispatch, cartId });
@@ -237,12 +215,7 @@ export const updateCartItem = async payload => {
         await updateCartItemMutation({
             variables: { cartId, cartItemId, quantity: itemQuantity }
         });
-        // event for datalayer
-        const updateCartEvent = new CustomEvent('sazerac.cif.update-cart', {
-            bubbles: true,
-            detail: { event: 'sazerac.cif.update-cart', cartId: cartId, cartItemId: cartItemId, quantity: itemQuantity }
-        });
-        document.dispatchEvent(updateCartEvent);
+        sendEventToDataLayer({ event: 'sazerac.cif.update-cart', cartId: cartId, cartItemId: cartItemId, quantity: itemQuantity });
         await getCartDetails({ cartDetailsQuery, dispatch, cartId });
 
     } catch (error) {

@@ -11,7 +11,7 @@
  *    governing permissions and limitations under the License.
  *
  ******************************************************************************/
-
+import { sendEventToDataLayer } from '../../utils/dataLayer';
 /**
  * Re-fetches a customer cart.
  *
@@ -33,20 +33,11 @@ export const signOutUser = async ({ revokeCustomerToken, setCartCookie, setUserC
         setCartCookie('', 0);
         setUserCookie('', 0);
         dispatch({ type: 'signOut' });
-        // event for datalayer
-        const userSignOutEvent = new CustomEvent('sazerac.cif.sign-out', {
-            bubbles: true,
-            detail: { event: 'sazerac.cif.sign-out' }
-        });
-        document.dispatchEvent(userSignOutEvent);
+        sendEventToDataLayer({ event: 'sazerac.cif.sign-out' });
+
     } catch (error) {
         console.error('An error occurred during sign-out', error);
         dispatch({ type: 'error', error: error.toString() });
-        // event for datalayer
-        const userSignOutErrorEvent = new CustomEvent('sazerac.cif.sign-out-error', {
-            bubbles: true,
-            detail: { event: 'sazerac.cif.sign-out-error', error }
-        });
-        document.dispatchEvent(userSignOutErrorEvent);
+        sendEventToDataLayer({ event: 'sazerac.cif.sign-out-error', error });
     }
 };

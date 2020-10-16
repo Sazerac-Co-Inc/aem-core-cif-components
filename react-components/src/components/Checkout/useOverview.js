@@ -18,6 +18,7 @@ import MUTATION_PLACE_ORDER from '../../queries/mutation_place_order.graphql';
 import QUERY_CUSTOMER_CART from '../../queries/query_customer_cart.graphql';
 
 import { useAwaitQuery } from '../../utils/hooks';
+import { sendEventToDataLayer } from '../../utils/dataLayer';
 import { useCartState } from '../Minicart/cartContext';
 import { useCheckoutState } from './checkoutContext';
 import { useUserContext } from '../../context/UserContext';
@@ -38,12 +39,8 @@ export default () => {
         try {
             const { data } = await placeOrder({ variables: { cartId } });
             checkoutDispatch({ type: 'placeOrder', order: data.placeOrder.order });
-            // event for datalayer
-            const placeOrderEvent = new CustomEvent('sazerac.cif.place-order', {
-                bubbles: true,
-                detail: { event: 'sazerac.cif.place-order', cart: data }
-            });
-            document.dispatchEvent(placeOrderEvent);
+            sendEventToDataLayer({ event: 'sazerac.cif.place-order', cart: data });
+
             // if user is signed in reset the cart
             if (isSignedIn) {
                 resetCustomerCart(fetchCustomerCartQuery);
