@@ -114,6 +114,7 @@ public class ProductListImpl extends ProductCollectionImpl implements ProductLis
             searchOptions.setCategoryId(identifier.getRight());
 
             // configure sorting
+            searchOptions.addSorterKey("position", "Position", Sorter.Order.DESC);
             searchOptions.addSorterKey("price", "Price", Sorter.Order.ASC);
             searchOptions.addSorterKey("name", "Product Name", Sorter.Order.ASC);
         }
@@ -175,12 +176,14 @@ public class ProductListImpl extends ProductCollectionImpl implements ProductLis
                     .filter(searchAggregation -> !SearchOptionsImpl.CATEGORY_ID_PARAMETER_ID.equals(searchAggregation.getIdentifier()))
                     .collect(Collectors.toList()));
         }
+
         return searchResultsSet;
     }
 
     private Pair<CategoryInterface, SearchResultsSet> getCategorySearchResultsSet() {
         if (categorySearchResultsSet == null) {
             Consumer<ProductInterfaceQuery> productQueryHook = categoryRetriever != null ? categoryRetriever.getProductQueryHook() : null;
+
             categorySearchResultsSet = searchResultsService
                 .performSearch(searchOptions, resource, productPage, request, productQueryHook, categoryRetriever);
         }
