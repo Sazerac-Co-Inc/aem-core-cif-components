@@ -114,8 +114,8 @@
         <core.wcm.components.library.version>2.9.0</core.wcm.components.library.version>
 
         <!-- By default, webpack will build in development mode -->
-        <webpack.prod>false</webpack.prod>
-        <webpack.dev>true</webpack.dev>
+        <webpack.prod>true</webpack.prod>
+        <webpack.dev>false</webpack.dev>
     </properties>
 
     <!-- ====================================================================== -->
