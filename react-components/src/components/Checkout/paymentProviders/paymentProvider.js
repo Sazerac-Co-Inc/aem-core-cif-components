@@ -34,19 +34,16 @@ const PaymentProvider = () => {
 
     switch (formState.values.payment_method) {
         case 'braintree': {
-            console.log("braintree pp");
             child = <Braintree accept="card" />;
             break;
         }
 
         case 'braintree_paypal': {
-            console.log("braintreepal pp");
             child = <Braintree accept="paypal" />;
             break;
         }
 
         case 'authnetcim': {
-            console.log("anet pp", formState);
             child = <Anet accept="card" />;
             break;
         }
