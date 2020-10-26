@@ -14,6 +14,7 @@
 
 import React, { createContext, useContext, useReducer } from 'react';
 import { string, func, shape, object } from 'prop-types';
+import { sendEventToDataLayer } from '../../utils/dataLayer';
 
 export const initialCheckoutState = {
     flowState: 'cart',
@@ -24,20 +25,15 @@ export const initialCheckoutState = {
     shippingMethod: null,
     paymentMethod: null,
     braintreeToken: false,
-    anetToken: '8p5jpGY66cPwqU83B8W5SCDusCk82U3cE9sf8pYwESX8xQtj7Mc92sh9Q8523NVs',
+    anetToken: document.getElementById('sp-cif-data').getAttribute("data-auth-cc"),
     anetActive: false,
-    anetApiId: '5A44mn22LfrX'
+    anetApiId: document.getElementById('sp-cif-data').getAttribute("data-auth-lk")
 };
 
 export const checkoutReducer = (state, action) => {
     switch (action.type) {
         case 'beginCheckout':
-            // event for datalayer
-            const beginCheckoutEvent = new CustomEvent('sazerac.cif.begin-checkout', {
-                bubbles: true,
-                detail: { event: 'sazerac.cif.begin-checkout' }
-            });
-            document.dispatchEvent(beginCheckoutEvent);
+            sendEventToDataLayer({ event: 'sazerac.cif.begin-checkout' });
             return {
                 ...state,
                 flowState: 'form'
