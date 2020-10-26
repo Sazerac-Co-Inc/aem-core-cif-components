@@ -203,11 +203,9 @@ const PaymentsForm = props => {
     function anetData(formApi, e) {
         if (formApi.getValue('payment_method') == "authnetcim") {
             e.preventDefault();
-            console.log("anet on click");
 
             submitPayment(secureData(formApi))
                 .then(response => {
-                    console.log("payment form response", response);
                     if (response.messages.resultCode == 'Error') {
                         var i = 0;
                         while (i < response.messages.message.length) {
@@ -221,6 +219,7 @@ const PaymentsForm = props => {
                                 var error = response.messages.message[i].text;
                                 console.error("Error", error);
                                 formApi.setValue('anetError', error);
+                                sendEventToDataLayer({ event: 'sazerac.cif.checkout-accept.js-error', error });
                             }
                             i = i + 1;
                         }
