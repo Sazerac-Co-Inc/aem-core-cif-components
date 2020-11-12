@@ -36,6 +36,10 @@ class AddToCart {
             alcohol
         };
 
+        if (this._element.dataset.stock == 'in-stock') {
+            this._element.disabled = false;
+        }
+
         // Disable add to cart if configurable product and no variant was selected
         if (this._state.configurable && !this._state.sku) {
             this._element.disabled = true;

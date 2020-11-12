@@ -87,6 +87,9 @@ export const getCartDetails = async payload => {
 
         if (data.cart.items) {
             let inStoreOnly = checkInStoreOnly(data.cart.items);
+            if (data.cart.items.length == 0) {
+              sendEventToDataLayer({ event: 'sazerac.cif.cart-reset' });
+            }
             dispatch({ type: inStoreOnly ? 'inStoreOnly' : 'useShipping', useCartShipping: inStoreOnly });
         }
         dispatch({ type: 'cart', cart: data.cart });
@@ -104,11 +107,15 @@ function checkInStoreOnly(items) {
     for (let i = 0; i < items.length; i++) {
         if (!items[i].product.is_alcohol_product) {
             inStoreOnly = false;
-            return inStoreOnly
+            sendEventToDataLayer({ event: 'sazerac.cif.shipping-only', data: items });
+            return inStoreOnly;
         } else if (items[i].product.is_alcohol_product) {
             inStoreOnly = true;
+            sendEventToDataLayer({ event: 'sazerac.cif.in-store-only', data: items });
+            return inStoreOnly;
         }
     }
+
     return inStoreOnly;
 }
 
