@@ -12,15 +12,16 @@
  *
  ******************************************************************************/
 import { useCheckoutState } from './checkoutContext';
+import { sendEventToDataLayer } from '../../utils/dataLayer';
 
 export default () => {
     const [{ order }, dispatch] = useCheckoutState();
-
     const continueShopping = () => {
         // Reset checkout state
         dispatch({ type: 'reset' });
     };
 
     const orderId = order && order.order_id ? order.order_id : null;
+    sendEventToDataLayer({ event: 'sazerac.cif.place-order' });
     return [{ orderId }, continueShopping];
 };

@@ -44,7 +44,6 @@ export const checkoutReducer = (state, action) => {
                 flowState: 'cart'
             };
         case 'placeOrder':
-            sendEventToDataLayer({ event: 'sazerac.cif.place-order', cart: action.order });
             return {
                 ...state,
                 order: action.order,
