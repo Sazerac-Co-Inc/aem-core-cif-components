@@ -40,7 +40,7 @@ const CreateAccountSuccess = props => {
                 <div className={classes.textBlock}>
                     {/* prettier-ignore */}
                     <Trans i18nKey="account:email-confirmation-info">
-                        You will receive a link at <b>{{ email: createAccountEmail }}</b>. Access that link to confirm your email address.
+                        Please click 'SIGN IN' below and log in with <b>{{ email: createAccountEmail }}</b>.
                     </Trans>
                 </div>
                 <div className={classes.actions}>

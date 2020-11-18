@@ -14,6 +14,7 @@
 import { useEffect } from 'react';
 import { useCartState } from './cartContext';
 import { useCookieValue } from '../../utils/hooks';
+import { sendEventToDataLayer } from '../../utils/dataLayer';
 import { useUserContext } from '../../context/UserContext';
 
 const CartInitializer = props => {
@@ -27,6 +28,8 @@ const CartInitializer = props => {
     useEffect(() => {
         if (cartId && cartId.length > 0 && !stateCartId) {
             dispatch({ type: 'cartId', cartId });
+        } else {
+            sendEventToDataLayer({ event: 'sazerac.cif.cart-reset' });
         }
     }, [cartId]);
 
