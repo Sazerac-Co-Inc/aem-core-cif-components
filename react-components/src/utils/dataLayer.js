@@ -1,3 +1,4 @@
+const SUCCESS = undefined;
 export const sendEventToDataLayer = (data) => {
     // event for datalayer
     const dataLayerEvent = new CustomEvent(data.event, {
@@ -5,4 +6,5 @@ export const sendEventToDataLayer = (data) => {
         detail: data
     });
     document.dispatchEvent(dataLayerEvent);
+    return SUCCESS;
 };
