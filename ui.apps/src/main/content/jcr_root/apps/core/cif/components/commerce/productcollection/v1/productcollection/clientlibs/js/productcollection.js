@@ -114,7 +114,7 @@ class ProductCollection {
                 } else {
                     let prefix = price.isStartPrice ? 'Starting at ' : ''; // TODO: enable i18n text
                     innerHTML += `<span>${prefix}${this._formatter.formatPrice({
-                        value: price.regularPrice,
+                        value: price.regularPrice == '0' ? price.finalPrice : price.regularPrice,
                         currency: price.currency
                     })}</span>`;
                 }
