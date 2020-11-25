@@ -93,9 +93,10 @@ export const reducerFactory = setCartCookie => {
             }
             case 'error':
                 console.error(action.error);
+                let cleanError = action.error.replace('GraphQL error: ', '');
                 return {
                     ...state,
-                    errorMessage: action.error
+                    errorMessage: cleanError
                 };
             case 'discardError':
                 return {
