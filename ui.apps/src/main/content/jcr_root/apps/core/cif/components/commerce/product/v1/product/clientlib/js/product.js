@@ -147,7 +147,7 @@ class Product {
                     })} (${price.discountPercent}%)</span>`;
             } else {
                 innerHTML += `<span>${this._formatter.formatPrice({
-                    value: price.regularPrice,
+                    value: price.regularPrice == '0' ? price.finalPrice : price.regularPrice,
                     currency: price.currency
                 })}</span>`;
             }

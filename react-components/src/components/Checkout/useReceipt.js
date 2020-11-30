@@ -15,7 +15,6 @@ import { useCheckoutState } from './checkoutContext';
 
 export default () => {
     const [{ order }, dispatch] = useCheckoutState();
-
     const continueShopping = () => {
         // Reset checkout state
         dispatch({ type: 'reset' });

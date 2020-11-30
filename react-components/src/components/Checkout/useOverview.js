@@ -40,12 +40,12 @@ export default () => {
             const { data } = await placeOrder({ variables: { cartId } });
             checkoutDispatch({ type: 'placeOrder', order: data.placeOrder.order });
             sendEventToDataLayer({ event: 'sazerac.cif.place-order', cart: data });
-
             // if user is signed in reset the cart
             if (isSignedIn) {
                 resetCustomerCart(fetchCustomerCartQuery);
             }
             cartDispatch({ type: 'reset' });
+
         } catch (error) {
             console.error(error);
             cartDispatch({ type: 'error', error: error.toString() });
