@@ -146,13 +146,21 @@ class VariantSelector {
     // Sagepath addition to disable add to cart button when a variant is out of stock
     _disableAddToCart() {
         const addToCartButton = document.querySelector(".productFullDetail__cartActions button");
-        if (!this._state.variant.inStock) {
-            addToCartButton.disabled = true;
-            addToCartButton.firstElementChild.innerText = "Out of Stock";
-        } else {
-          addToCartButton.disabled = false;
-          addToCartButton.firstElementChild.innerText = "Add to Cart";
+        // if variant available check that it is in stock
+        if (this._state.variant) {
+                if (!this._state.variant.inStock) {
+                    addToCartButton.disabled = true;
+                    addToCartButton.firstElementChild.innerText = "Out of Stock";
+                } else {
+                  addToCartButton.disabled = false;
+                  addToCartButton.firstElementChild.innerText = "Add to Cart";
+                }
         }
+        // if multiple attributes (will use this until a purchasable combination of attributes is selected)
+//        else if (this._state.variants) {
+//            continue;
+//        }
+
     }
 
     /**

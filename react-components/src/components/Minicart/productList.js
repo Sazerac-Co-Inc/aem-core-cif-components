@@ -20,56 +20,15 @@ import classes from './productList.css';
 
 const ProductList = props => {
     const { cartItems } = props;
-    let normalProducts = [];
-    let normalProductsCount = 0;
-    let alcoholProducts = [];
-    let alcoholProductsCount = 0;
-    cartItems.forEach(item => {
-        if (item.product.is_alcohol_product) {
-            alcoholProducts.push(item);
-            alcoholProductsCount += item.quantity;
-        } else {
-            normalProducts.push(item);
-            normalProductsCount += item.quantity;
-        }
-    });
     return (
-        <div>
-            {normalProducts.length >= 1 &&
-                <div className="productList__Wrapper">
-                    <div className={classes.header}>
-                        <h4 className={classes.headerTitle}>Shipping</h4>
-                        <span>{normalProductsCount} {normalProductsCount > 1 ? 'items' : 'item'}</span>
-                    </div>
-                    <List
-                        classes={classes}
-                        render="ul"
-                        items={normalProducts}
-                        getItemKey={item => item.id}
-                        renderItem={itemProps => {
-                            return <Product item={itemProps.item} />;
-                        }}></List>
-                </div>
-            }
-
-            {alcoholProducts.length >= 1 &&
-                <div className="productList__Wrapper">
-                    <div className={classes.header}>
-                        <h4 className={classes.headerTitle}>In Store Pickup</h4>
-                        <span>{alcoholProductsCount} {alcoholProductsCount > 1 ? 'items' : 'item'}</span>
-                    </div>
-                    <List
-                        classes={classes}
-                        render="ul"
-                        items={alcoholProducts}
-                        getItemKey={item => item.id}
-                        renderItem={itemProps => {
-                            return <Product item={itemProps.item} />;
-                        }}></List>
-                </div>
-            }
-        </div>
-
+        <List
+            classes={classes}
+            render="ul"
+            items={cartItems}
+            getItemKey={item => item.id}
+            renderItem={itemProps => {
+                return <Product item={itemProps.item} />;
+            }}></List>
     );
 };
 

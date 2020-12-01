@@ -55,6 +55,24 @@ const CartOptions = () => {
         },
         {
             value: '4'
+        },
+        {
+            value: '5'
+        },
+        {
+            value: '6'
+        },
+        {
+            value: '7'
+        },
+        {
+            value: '8'
+        },
+        {
+            value: '9'
+        },
+        {
+            value: '10'
         }
     ];
 
