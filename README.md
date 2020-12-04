@@ -73,15 +73,15 @@ Starting with 2.3.2, Magento supports cache-able GraphQL requests and starting w
 2. Upload then install aem-service-pkg-6.5.5.zip in the package manager. http://localhost:4502/crx/packmgr/
 3. Upload then install cif-connector 1.1.0 in the package manager. https://repo.maven.apache.org/maven2/com/adobe/commerce/cif/cif-connector-all/
 4. Upload then install ACS AEM Commons 4.7.2 in the package manager. https://github.com/Adobe-Consulting-Services/acs-aem-commons/releases/tag/acs-aem-commons-4.7.2
-5. Run the following to make git compatible with the long filenames present in the repos:
-   ```bash
-   git config --system core.longpaths true
-   ```
-6. Clone aem-core-cif-components dev branch:
+5. Clone aem-core-cif-components dev branch:
    ```bash
    git clone -b dev https://github.com/Sazerac-Co-Inc/aem-core-cif-components.git
    ```
-7. Install cif components while disabling some tests:
+6. (Optional) If you encounter long filenames error, run the following to make git compatible with long filenames present in the repos:
+   ```bash
+   git config --system core.longpaths true
+   ```
+7. (Temporary) Install cif components while disabling some tests:
    ```bash
    cd aem-core-cif-components
    mvn clean install -Dbaseline.skip=true -Dmaven.test.skip=true -PautoInstallAll
