@@ -84,7 +84,7 @@ Starting with 2.3.2, Magento supports cache-able GraphQL requests and starting w
 7. (Temporary) Install cif components while disabling some tests:
    ```bash
    cd aem-core-cif-components
-   mvn clean install -Dbaseline.skip=true -Dmaven.test.skip=true -PautoInstallAll
+   mvn clean install -Dbaseline.skip=true -PautoInstallAll
    ```
 
 Here is a full [video walk-through of the setup process](https://www.adobe.io/apis/experiencecloud/commerce-integration-framework/getting-started.html).
