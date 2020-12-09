@@ -59,6 +59,7 @@ import com.adobe.cq.commerce.magento.graphql.ConfigurableVariant;
 import com.adobe.cq.commerce.magento.graphql.GroupedProduct;
 import com.adobe.cq.commerce.magento.graphql.GroupedProductItem;
 import com.adobe.cq.commerce.magento.graphql.MediaGalleryEntry;
+import com.adobe.cq.commerce.magento.graphql.ProductImage;
 import com.adobe.cq.commerce.magento.graphql.ProductInterface;
 import com.adobe.cq.commerce.magento.graphql.ProductStockStatus;
 import com.adobe.cq.commerce.magento.graphql.SimpleProduct;
@@ -151,6 +152,21 @@ public class ProductImpl implements Product {
     @Override
     public String getName() {
         return productRetriever.fetchProduct().getName();
+    }
+
+    @Override
+    public Asset getImage() {
+        ProductImage entry = productRetriever.fetchProduct().getImage();
+
+        if (entry == null)
+            return null;
+
+        AssetImpl asset = new AssetImpl();
+        asset.setLabel(entry.getLabel());
+        asset.setPosition(entry.getPosition());
+        asset.setPath(entry.getUrl());
+
+        return asset;
     }
 
     public String getDrizlyUrl() {
