@@ -112,6 +112,7 @@ public class ProductImpl implements Product {
     private Boolean isGroupedProduct;
     private Boolean isVirtualProduct;
     private Boolean loadClientPrice;
+    private Asset mainAsset;
 
     private AbstractProductRetriever productRetriever;
 
@@ -156,17 +157,28 @@ public class ProductImpl implements Product {
 
     @Override
     public Asset getImage() {
-        ProductImage entry = productRetriever.fetchProduct().getImage();
 
-        if (entry == null)
-            return null;
+        if (mainAsset != null) {
+            ProductImpl.LOGGER.error("Image from Magento is NULL");
+            return mainAsset;
+        }
 
-        AssetImpl asset = new AssetImpl();
-        asset.setLabel(entry.getLabel());
-        asset.setPosition(entry.getPosition());
-        asset.setPath(entry.getUrl());
+        try {
+            ProductImage entry = productRetriever.fetchProduct().getImage();
 
-        return asset;
+            if (entry == null)
+                return null;
+
+            AssetImpl asset = new AssetImpl();
+            asset.setLabel(entry.getLabel());
+            asset.setPosition(entry.getPosition());
+            asset.setPath(entry.getUrl());
+            mainAsset = asset;
+        } catch (Exception ex) {
+            ProductImpl.LOGGER.error(ex.getMessage());
+        }
+
+        return mainAsset;
     }
 
     public String getDrizlyUrl() {
