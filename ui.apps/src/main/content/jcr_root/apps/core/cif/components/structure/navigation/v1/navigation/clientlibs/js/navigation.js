@@ -22,18 +22,19 @@ class Navigation {
         this.shadowTreeRoot = document.querySelector(Navigation.selectors.shadowTreeRoot);
         this.panelTitleElement = document.querySelector(Navigation.selectors.navigationHeaderTitle);
         this.navigationMask = document.querySelector(Navigation.selectors.navigationMask);
-
+        this.navTrigger = document.querySelector(Navigation.selectors.navigationTrigger);
         this.defaultPanelTitle = this.panelTitleElement.textContent;
 
         const backNavigationBinding = this.backNavigation.bind(this);
         const downNavigationBinding = this.downNavigation.bind(this);
 
-        document
-            .querySelector(Navigation.selectors.navigationTrigger)
-            .addEventListener('click', () => this.showPanel());
+        
+        this.navTrigger.addEventListener('click', () => this.showPanel());
+
         document
             .querySelector(Navigation.selectors.closeNavigationButton)
             .addEventListener('click', () => this.hidePanel());
+
         this.backNavigationButton.addEventListener('click', backNavigationBinding);
         document
             .querySelectorAll(Navigation.selectors.downNavigationButton)
@@ -72,11 +73,13 @@ class Navigation {
     showPanel() {
         this.navigationPanel.classList.add(Navigation.CSS_CLASS_NAVIGATION_OPEN);
         this.navigationMask.classList.add(Navigation.CSS_CLASS_MASK_ACTIVE);
+        this.navTrigger.classList.add(Navigation.CSS_CLASS_NAVTRIGGER_ACTIVE);
     }
 
     hidePanel() {
         this.navigationPanel.classList.remove(Navigation.CSS_CLASS_NAVIGATION_OPEN);
         this.navigationMask.classList.remove(Navigation.CSS_CLASS_MASK_ACTIVE);
+        this.navTrigger.classList.remove(Navigation.CSS_CLASS_NAVTRIGGER_ACTIVE);
     }
 
     getActiveNavigation() {
@@ -168,6 +171,7 @@ Navigation.selectors = {
     navigationMask: 'button.navigation__mask'
 };
 
+Navigation.CSS_CLASS_NAVTRIGGER_ACTIVE = 'navTrigger__root_active';
 Navigation.CSS_CLASS_NAVIGATION_OPEN = 'navigation__root_open';
 Navigation.CSS_CLASS_ICON_ROOT_ACTIVE = 'icon__root--active';
 Navigation.CSS_CLASS_CLICKABLE_ROOT = 'clickable__root';
