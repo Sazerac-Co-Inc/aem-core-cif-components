@@ -55,7 +55,7 @@ const ProductList = props => {
             {alcoholProducts.length >= 1 &&
                 <div className="productList__Wrapper">
                     <div className={classes.header}>
-                        <h4 className={classes.headerTitle}>In Store Pickup</h4>
+                        <h4 className={classes.headerTitle}>Curbside Pickup</h4>
                         <span>{alcoholProductsCount} {alcoholProductsCount > 1 ? 'items' : 'item'}</span>
                     </div>
                     <List
