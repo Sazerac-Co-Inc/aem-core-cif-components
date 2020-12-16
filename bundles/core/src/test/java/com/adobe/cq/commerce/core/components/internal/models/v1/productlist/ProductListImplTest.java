@@ -322,34 +322,34 @@ public class ProductListImplTest {
 
         SorterKey currentKey = sorter.getCurrentKey();
         Assert.assertNotNull(currentKey);
-        Assert.assertEquals("price", currentKey.getName());
-        Assert.assertEquals("Price", currentKey.getLabel());
-        Assert.assertEquals(Sorter.Order.ASC, currentKey.getOrder());
+        Assert.assertEquals("position", currentKey.getName());
+        Assert.assertEquals("Position", currentKey.getLabel());
+        Assert.assertEquals(Sorter.Order.DESC, currentKey.getOrder());
         Assert.assertTrue(currentKey.isSelected());
 
         Map<String, String> currentOrderParameters = currentKey.getCurrentOrderParameters();
         Assert.assertNotNull(currentOrderParameters);
         Assert.assertEquals(resultSet.getAppliedQueryParameters().size() + 2, currentOrderParameters.size());
         resultSet.getAppliedQueryParameters().forEach((key, value) -> Assert.assertEquals(value, currentOrderParameters.get(key)));
-        Assert.assertEquals("price", currentOrderParameters.get(Sorter.PARAMETER_SORT_KEY));
-        Assert.assertEquals("asc", currentOrderParameters.get(Sorter.PARAMETER_SORT_ORDER));
+        Assert.assertEquals("position", currentOrderParameters.get(Sorter.PARAMETER_SORT_KEY));
+        Assert.assertEquals("desc", currentOrderParameters.get(Sorter.PARAMETER_SORT_ORDER));
 
         Map<String, String> oppositeOrderParameters = currentKey.getOppositeOrderParameters();
         Assert.assertNotNull(oppositeOrderParameters);
         Assert.assertEquals(resultSet.getAppliedQueryParameters().size() + 2, oppositeOrderParameters.size());
         resultSet.getAppliedQueryParameters().forEach((key, value) -> Assert.assertEquals(value, oppositeOrderParameters.get(key)));
-        Assert.assertEquals("price", oppositeOrderParameters.get(Sorter.PARAMETER_SORT_KEY));
-        Assert.assertEquals("desc", oppositeOrderParameters.get(Sorter.PARAMETER_SORT_ORDER));
+        Assert.assertEquals("position", oppositeOrderParameters.get(Sorter.PARAMETER_SORT_KEY));
+        Assert.assertEquals("asc", oppositeOrderParameters.get(Sorter.PARAMETER_SORT_ORDER));
 
         List<SorterKey> keys = sorter.getKeys();
         Assert.assertNotNull(keys);
-        Assert.assertEquals(2, keys.size());
+        Assert.assertEquals(3, keys.size());
         SorterKey defaultKey = keys.get(0);
         Assert.assertEquals(currentKey.getName(), defaultKey.getName());
 
         SorterKey otherKey = keys.get(1);
-        Assert.assertEquals("name", otherKey.getName());
-        Assert.assertEquals("Product Name", otherKey.getLabel());
+        Assert.assertEquals("price", otherKey.getName());
+        Assert.assertEquals("Price", otherKey.getLabel());
         Assert.assertEquals(Sorter.Order.ASC, otherKey.getOrder());
     }
 }

@@ -84,4 +84,6 @@ public interface Product {
     String getDrizlyUrl();
 
     String getAlcoholProduct();
+
+    Asset getImage();
 }

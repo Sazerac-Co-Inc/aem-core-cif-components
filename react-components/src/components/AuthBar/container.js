@@ -16,12 +16,14 @@ import ReactDOM from 'react-dom';
 
 import AuthBar from './authBar';
 import AuthModal from '../AuthModal';
+import { sendEventToDataLayer } from '../../utils/dataLayer';
 import { useNavigationContext } from '../../context/NavigationContext';
 
 import classes from './container.css';
 
 const Container = () => {
     const container = document.querySelector('#miniaccount');
+    sendEventToDataLayer({ event: 'sazerac.cif.miniaccount-rendered' });
     const [{ view }] = useNavigationContext();
 
     const hasModal = view !== 'MENU';
