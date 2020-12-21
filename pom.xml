@@ -21,7 +21,7 @@
     <parent>
         <groupId>com.adobe.commerce.cif</groupId>
         <artifactId>core-cif-components-parent</artifactId>
-        <version>1.1.15</version>
+        <version>1.1.16</version>
         <relativePath>parent/pom.xml</relativePath>
     </parent>
 
@@ -45,22 +45,6 @@
         <module>bundles/core</module>
         <module>all</module>
     </modules>
-
-    <!-- We have a dedicated profile for the CIF components examples library -->
-    <!-- They are included by default unless we perform a release -->
-    <profiles>
-        <profile>
-            <id>examples-library</id>
-            <activation>
-                <property>
-                    <name>!skip-examples</name>
-                </property>
-            </activation>
-            <modules>
-                <module>examples</module>
-            </modules>
-        </profile>
-    </profiles>
 
     <!-- ====================================================================== -->
     <!-- S C M  D E F I N I T I O N                                             -->
