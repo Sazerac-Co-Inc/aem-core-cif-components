@@ -5,6 +5,7 @@ mutation (
     $ccExpYear: String!,
     $ccExpMonth: String!, 
     $ccCid: String!,
+    $ccType: String!,
     $opaqueDataDescriptor: String!,
     $nonce: String!
 ) {
@@ -13,7 +14,7 @@ mutation (
         payment_method: {
             code: $paymentMethodCode, 
             tokenbase_data: {
-                cc_type: "VI"
+                cc_type: $ccType,
                 cc_last4: $ccLast4,
                 cc_exp_year: $ccExpYear,
                 cc_exp_month: $ccExpMonth,
