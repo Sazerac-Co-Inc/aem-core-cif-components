@@ -90,7 +90,7 @@ public class NavigationImpl implements Navigation {
 
     @PostConstruct
     void initModel() {
-        graphQLCategoryProvider = new GraphQLCategoryProvider(resource, currentPage);
+        graphQLCategoryProvider = new GraphQLCategoryProvider(resource, currentPage, request);
         structureDepth = properties.get(PN_STRUCTURE_DEPTH, currentStyle.get(PN_STRUCTURE_DEPTH, DEFAULT_STRUCTURE_DEPTH));
         if (structureDepth < MIN_STRUCTURE_DEPTH) {
             LOGGER.warn("Navigation structure depth ({}) is bellow min value ({}). Using min value.", PN_STRUCTURE_DEPTH,
@@ -119,6 +119,10 @@ public class NavigationImpl implements Navigation {
     private void addItems(PageManager pageManager, AbstractNavigationItem parent,
         com.adobe.cq.wcm.core.components.models.NavigationItem currentWcmItem, List<NavigationItem> itemList) {
         Page page = pageManager.getPage(currentWcmItem.getPath());
+
+        // Go to production version to get the configuration of the navigation panel
+        page = SiteNavigation.toLaunchProductionPage(page);
+
         if (shouldExpandCatalogRoot(page)) {
             expandCatalogRoot(page, itemList);
         } else {

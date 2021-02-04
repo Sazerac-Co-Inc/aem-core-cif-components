@@ -14,10 +14,12 @@
 
 package com.adobe.cq.commerce.core.components.client;
 
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
-import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.List;
+
+import javax.servlet.http.Cookie;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
@@ -26,7 +28,6 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.SyntheticResource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
-import org.apache.sling.testing.mock.caconfig.ContextPlugins;
 import org.apache.sling.testing.mock.sling.ResourceResolverType;
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,8 +36,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
-import org.osgi.service.cm.Configuration;
-import org.osgi.service.cm.ConfigurationAdmin;
 
 import com.adobe.cq.commerce.core.components.services.ComponentsConfiguration;
 import com.adobe.cq.commerce.graphql.client.CachingStrategy;
@@ -45,15 +44,13 @@ import com.adobe.cq.commerce.graphql.client.GraphqlClient;
 import com.adobe.cq.commerce.graphql.client.HttpMethod;
 import com.adobe.cq.commerce.graphql.client.RequestOptions;
 import com.adobe.cq.commerce.magento.graphql.gson.QueryDeserializer;
+import com.adobe.cq.launches.api.Launch;
 import com.day.cq.wcm.api.Page;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import io.wcm.testing.mock.aem.junit.AemContext;
-import io.wcm.testing.mock.aem.junit.AemContextBuilder;
+import io.wcm.testing.mock.aem.junit.AemContextCallback;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -64,50 +61,30 @@ public class MagentoGraphqlClientTest {
 
     private static final ComponentsConfiguration MOCK_CONFIGURATION_OBJECT = new ComponentsConfiguration(MOCK_CONFIGURATION);
 
+    private static final String PAGE_A = "/content/pageA";
+    private static final String LAUNCH_BASE_PATH = "/content/launches/2020/09/14/mylaunch";
+    private static final String LAUNCH_PAGE_A = LAUNCH_BASE_PATH + PAGE_A;
+    private static final String PRODUCT_COMPONENT_PATH = "/content/pageA/jcr:content/root/responsivegrid/product";
+
     private GraphqlClient graphqlClient;
 
     @Rule
-    public final AemContext context = new AemContextBuilder(ResourceResolverType.JCR_MOCK).plugin(ContextPlugins.CACONFIG)
-        .beforeSetUp(context -> {
-            ConfigurationAdmin configurationAdmin = context.getService(ConfigurationAdmin.class);
-            Configuration serviceConfiguration = configurationAdmin.getConfiguration(
-                "org.apache.sling.caconfig.resource.impl.def.DefaultContextPathStrategy");
-
-            Dictionary<String, Object> props = new Hashtable<>();
-            props.put("configRefResourceNames", new String[] { ".", "jcr:content" });
-            props.put("configRefPropertyNames", "cq:conf");
-            serviceConfiguration.update(props);
-
-            serviceConfiguration = configurationAdmin.getConfiguration(
-                "org.apache.sling.caconfig.resource.impl.def.DefaultConfigurationResourceResolvingStrategy");
-            props = new Hashtable<>();
-            props.put("configPath", "/conf");
-            serviceConfiguration.update(props);
-
-            serviceConfiguration = configurationAdmin.getConfiguration("org.apache.sling.caconfig.impl.ConfigurationResolverImpl");
-            props = new Hashtable<>();
-            props.put("configBucketNames", new String[] { "settings" });
-            serviceConfiguration.update(props);
-        }).build();
+    public final AemContext context = new AemContext(
+        (AemContextCallback) context -> {
+            context.load().json("/context/jcr-content.json", "/content");
+        },
+        ResourceResolverType.JCR_MOCK);
 
     @Before
     public void setup() {
-
-        context.load()
-            .json("/context/jcr-content.json", "/content");
-        context.load()
-            .json("/context/jcr-conf.json", "/conf/test-config");
         graphqlClient = Mockito.mock(GraphqlClient.class);
-        Mockito.when(graphqlClient.execute(Mockito.any(), Mockito.any(), Mockito.any()))
-            .thenReturn(null);
+        Mockito.when(graphqlClient.execute(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(null);
 
         context.registerAdapter(Resource.class, GraphqlClient.class, (Function<Resource, GraphqlClient>) input -> StringUtils.isNotEmpty(
             input.getValueMap().get("cq:graphqlClient", String.class)) ? graphqlClient : null);
-
     }
 
     private void testMagentoStoreProperty(Resource resource, boolean withStoreHeader) {
-
         MagentoGraphqlClient client = MagentoGraphqlClient.create(resource);
         Assert.assertNotNull("GraphQL client created successfully", client);
         executeAndCheck(withStoreHeader, client);
@@ -118,41 +95,30 @@ public class MagentoGraphqlClientTest {
         client.execute("{dummy}");
         List<Header> headers = withStoreHeader ? Collections.singletonList(new BasicHeader("Store", "my-store")) : Collections.emptyList();
         RequestOptionsMatcher matcher = new RequestOptionsMatcher(headers, null);
-        Mockito.verify(graphqlClient)
-            .execute(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.argThat(matcher));
+        Mockito.verify(graphqlClient).execute(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.argThat(matcher));
 
         // Verify setting a custom HTTP method
         client.execute("{dummy}", HttpMethod.GET);
         matcher = new RequestOptionsMatcher(headers, HttpMethod.GET);
-        Mockito.verify(graphqlClient)
-            .execute(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.argThat(matcher));
+        Mockito.verify(graphqlClient).execute(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.argThat(matcher));
     }
 
     @Test
     public void testMagentoStorePropertyWithConfigBuilder() {
-        /*
-         * The content for this test looks slightly different than it does in AEM:
-         * In AEM there the tree structure is /conf/<config>/settings/cloudconfigs/commerce/jcr:content
-         * In our test content it's /conf/<config>/settings/cloudconfigs/commerce
-         * The reason is that AEM has a specific CaConfig API implementation that reads the configuration
-         * data from the jcr:content node of the configuration page, something which we cannot reproduce in
-         * a unit test scenario.
-         */
-        Page pageWithConfig = Mockito.spy(context.pageManager().getPage("/content/pageG"));
+        Page pageWithConfig = Mockito.spy(context.pageManager().getPage(PAGE_A));
         Resource pageResource = Mockito.spy(pageWithConfig.adaptTo(Resource.class));
         when(pageWithConfig.adaptTo(Resource.class)).thenReturn(pageResource);
         when(pageResource.adaptTo(GraphqlClient.class)).thenReturn(graphqlClient);
         when(pageResource.adaptTo(ComponentsConfiguration.class)).thenReturn(MOCK_CONFIGURATION_OBJECT);
 
-        MagentoGraphqlClient client = MagentoGraphqlClient.create(pageWithConfig
-            .adaptTo(Resource.class), pageWithConfig);
+        MagentoGraphqlClient client = MagentoGraphqlClient.create(pageWithConfig.adaptTo(Resource.class), pageWithConfig);
         Assert.assertNotNull("GraphQL client created successfully", client);
         executeAndCheck(true, client);
     }
 
     @Test
     public void testCachingStrategyParametersForComponents() {
-        Resource resource = context.resourceResolver().getResource("/content/pageA/jcr:content/root/responsivegrid/product");
+        Resource resource = context.resourceResolver().getResource(PRODUCT_COMPONENT_PATH);
         testCachingStrategyParameters(resource);
     }
 
@@ -163,7 +129,7 @@ public class MagentoGraphqlClientTest {
     }
 
     private void testCachingStrategyParameters(Resource resource) {
-        Page page = Mockito.spy(context.pageManager().getPage("/content/pageA"));
+        Page page = Mockito.spy(context.pageManager().getPage(PAGE_A));
         Resource pageResource = Mockito.spy(page.adaptTo(Resource.class));
         when(page.adaptTo(Resource.class)).thenReturn(pageResource);
         when(pageResource.adaptTo(GraphqlClient.class)).thenReturn(graphqlClient);
@@ -183,38 +149,32 @@ public class MagentoGraphqlClientTest {
     @Test
     public void testMagentoStoreProperty() {
         // Get page which has the magentoStore property in its jcr:content node
-        Resource resource = Mockito.spy(context.resourceResolver()
-            .getResource("/content/pageA"));
-
+        Resource resource = Mockito.spy(context.resourceResolver().getResource("/content/pageA"));
         when(resource.adaptTo(ComponentsConfiguration.class)).thenReturn(MOCK_CONFIGURATION_OBJECT);
-
         testMagentoStoreProperty(resource, true);
     }
 
     @Test
     public void testInheritedMagentoStoreProperty() {
         // Get page whose parent has the magentoStore property in its jcr:content node
-        Resource resource = Mockito.spy(context.resourceResolver()
-            .getResource("/content/pageB/pageC"));
+        Resource resource = Mockito.spy(context.resourceResolver().getResource("/content/pageB/pageC"));
         when(resource.adaptTo(ComponentsConfiguration.class)).thenReturn(MOCK_CONFIGURATION_OBJECT);
         testMagentoStoreProperty(resource, true);
     }
 
     @Test
     public void testMissingMagentoStoreProperty() {
-        // Get page whose parent has the magentoStore property in its jcr:content node
-        Resource resource = Mockito.spy(context.resourceResolver()
-            .getResource("/content/pageD"));
-        when(resource.adaptTo(ComponentsConfiguration.class)).thenReturn(MOCK_CONFIGURATION_OBJECT);
-        testMagentoStoreProperty(resource, false);
+        // Get page which has the magentoStore property in its jcr:content node
+        Resource resource = Mockito.spy(context.resourceResolver().getResource("/content/pageD/jcr:content"));
+        when(resource.adaptTo(ComponentsConfiguration.class)).thenReturn(ComponentsConfiguration.EMPTY);
+        testMagentoStoreProperty(resource, true);
     }
 
     @Test
     public void testOldMagentoStoreProperty() {
         // Get page which has the old cq:magentoStore property in its jcr:content node
-        Resource resource = Mockito.spy(context.resourceResolver()
-            .getResource("/content/pageE"));
-        when(resource.adaptTo(ComponentsConfiguration.class)).thenReturn(MOCK_CONFIGURATION_OBJECT);
+        Resource resource = Mockito.spy(context.resourceResolver().getResource("/content/pageE/jcr:content"));
+        when(resource.adaptTo(ComponentsConfiguration.class)).thenReturn(ComponentsConfiguration.EMPTY);
         testMagentoStoreProperty(resource, true);
     }
 
@@ -222,8 +182,7 @@ public class MagentoGraphqlClientTest {
     public void testNewMagentoStoreProperty() {
         // Get page which has both the new magentoStore property and old cq:magentoStore property
         // in its jcr:content node and make sure the new one is prefered
-        Resource resource = Mockito.spy(context.resourceResolver()
-            .getResource("/content/pageF"));
+        Resource resource = Mockito.spy(context.resourceResolver().getResource("/content/pageF"));
         when(resource.adaptTo(ComponentsConfiguration.class)).thenReturn(MOCK_CONFIGURATION_OBJECT);
         testMagentoStoreProperty(resource, true);
     }
@@ -231,11 +190,95 @@ public class MagentoGraphqlClientTest {
     @Test
     public void testError() {
         // Get page which has the magentoStore property in its jcr:content node
-        Resource resource = Mockito.spy(context.resourceResolver()
-            .getResource("/content/pageG"));
-
+        Resource resource = Mockito.spy(context.resourceResolver().getResource("/content/pageG"));
         MagentoGraphqlClient client = MagentoGraphqlClient.create(resource);
         Assert.assertNull(client);
+    }
+
+    @Test
+    public void testPreviewVersionHeaderOnLaunchPage() {
+        context.registerAdapter(Resource.class, Launch.class, (Function<Resource, Launch>) resource -> new MockLaunch(resource));
+
+        // We configure the adapter to get a config for PAGE_A, so we test that the code gets the config from the Launch production page
+        context.registerAdapter(Resource.class, ComponentsConfiguration.class, (Function<Resource, ComponentsConfiguration>) resource -> {
+            return resource.getPath().equals(PAGE_A) ? MOCK_CONFIGURATION_OBJECT : ComponentsConfiguration.EMPTY;
+        });
+
+        // We test that a component rendered on an AEM Launch page will add the Preview-Version header
+        Page launchPage = context.pageManager().getPage(LAUNCH_PAGE_A);
+        Resource launchProductResource = context.resourceResolver().getResource(LAUNCH_BASE_PATH + PRODUCT_COMPONENT_PATH);
+
+        MagentoGraphqlClient client = MagentoGraphqlClient.create(launchProductResource, launchPage);
+
+        // Verify parameters with default execute() method and store property
+        client.execute("{dummy}");
+
+        List<Header> headers = new ArrayList<>();
+        headers.add(new BasicHeader("Store", "my-store"));
+        headers.add(new BasicHeader("Preview-Version", "1606809600")); // Tuesday, 1 December 2020 09:00:00 GMT+01:00
+
+        RequestOptionsMatcher matcher = new RequestOptionsMatcher(headers, HttpMethod.POST);
+        Mockito.verify(graphqlClient).execute(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.argThat(matcher));
+    }
+
+    @Test
+    public void testPreviewVersionHeaderWithTimewarpRequestParameter() {
+        Calendar time = Calendar.getInstance();
+        time.setTimeInMillis(time.getTimeInMillis() + 3600000); // 1h in future from now
+
+        // Set a date in future so the unit test never fails (the code checks that the timewarp epoch is in the future)
+        context.request().setParameterMap(Collections.singletonMap("timewarp", String.valueOf(time.getTimeInMillis()))); // Time in ms
+        testPreviewVersionHeaderWithTimewarp(time.getTimeInMillis());
+    }
+
+    @Test
+    public void testPreviewVersionHeaderWithTimewarpCookie() {
+        Calendar time = Calendar.getInstance();
+        time.setTimeInMillis(time.getTimeInMillis() + 3600000); // 1h in future from now
+
+        // Set a date in future so the unit test never fails (the code checks that the timewarp epoch is in the future)
+        context.request().addCookie(new Cookie("timewarp", String.valueOf(time.getTimeInMillis()))); // Time in ms
+        testPreviewVersionHeaderWithTimewarp(time.getTimeInMillis());
+    }
+
+    @Test
+    public void testPreviewVersionHeaderWithTimewarpCookieInThePast() {
+        Calendar time = Calendar.getInstance();
+        time.setTimeInMillis(time.getTimeInMillis() - 3600000); // 1h in past from now
+
+        // Set a date in past so the unit test always fails (the code checks that the timewarp epoch is in the future)
+        context.request().addCookie(new Cookie("timewarp", String.valueOf(time.getTimeInMillis()))); // Time in ms
+        testPreviewVersionHeaderWithTimewarp(null);
+    }
+
+    @Test
+    public void testPreviewVersionHeaderWithInvalidTimewarpValue() {
+        context.request().addCookie(new Cookie("timewarp", "invalid"));
+        testPreviewVersionHeaderWithTimewarp(null);
+    }
+
+    private void testPreviewVersionHeaderWithTimewarp(Long expectedTimeInMillis) {
+        Page page = Mockito.spy(context.pageManager().getPage(PAGE_A));
+        Resource pageResource = Mockito.spy(page.adaptTo(Resource.class));
+        when(page.adaptTo(Resource.class)).thenReturn(pageResource);
+        when(pageResource.adaptTo(GraphqlClient.class)).thenReturn(graphqlClient);
+        when(pageResource.adaptTo(ComponentsConfiguration.class)).thenReturn(MOCK_CONFIGURATION_OBJECT);
+
+        MagentoGraphqlClient client = MagentoGraphqlClient.create(pageResource, page, context.request());
+
+        // Verify parameters with default execute() method and store property
+        client.execute("{dummy}");
+
+        List<Header> headers = new ArrayList<>();
+        headers.add(new BasicHeader("Store", "my-store"));
+        if (expectedTimeInMillis != null) {
+            String expectedPreviewVersion = String.valueOf(expectedTimeInMillis.longValue() / 1000);
+            headers.add(new BasicHeader("Preview-Version", expectedPreviewVersion));
+        }
+
+        // The POST is only explicitly added when there is a Preview-Version header
+        RequestOptionsMatcher matcher = new RequestOptionsMatcher(headers, expectedTimeInMillis != null ? HttpMethod.POST : null);
+        Mockito.verify(graphqlClient).execute(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.argThat(matcher));
     }
 
     /**

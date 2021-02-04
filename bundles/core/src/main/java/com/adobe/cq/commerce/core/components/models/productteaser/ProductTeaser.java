@@ -16,11 +16,12 @@ package com.adobe.cq.commerce.core.components.models.productteaser;
 
 import com.adobe.cq.commerce.core.components.models.common.Price;
 import com.adobe.cq.commerce.core.components.models.retriever.AbstractProductRetriever;
+import com.adobe.cq.wcm.core.components.models.Component;
 
 /**
  * Product Teaser is the sling model interface for the CIF Teaser component.
  */
-public interface ProductTeaser {
+public interface ProductTeaser extends Component {
 
     /**
      * Returns name of the configured Product for this {@code ProductTeaser}
@@ -30,6 +31,7 @@ public interface ProductTeaser {
     String getName();
 
     /**
+     * @return The formatted price including the currency.
      * @deprecated Please use getPriceRange() instead.
      */
     @Deprecated
@@ -60,7 +62,7 @@ public interface ProductTeaser {
      * Returns the "call to action" configured for this teaser.
      * 
      * @return the value of the "call to action" option. This can be "add-to-cart" or "details". If no CTA is configured then this methods
-     *         returns {@link null}
+     *         returns {@code null}
      */
     String getCallToAction();
 

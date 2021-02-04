@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.adobe.cq.commerce.core.components.internal.services.UrlProviderImpl;
 import com.adobe.cq.commerce.core.components.services.UrlProvider;
+import com.adobe.cq.wcm.launches.utils.LaunchUtils;
 import com.day.cq.commons.inherit.HierarchyNodeInheritanceValueMap;
 import com.day.cq.commons.inherit.InheritanceValueMap;
 import com.day.cq.wcm.api.Page;
@@ -105,6 +106,8 @@ public class SiteNavigation {
      */
     @Nullable
     public static Page getNavigationRootPage(Page page) {
+        page = toLaunchProductionPage(page);
+
         while (page != null) {
             if (page.getContentResource().getValueMap().get(PN_NAV_ROOT, false)) {
                 break;
@@ -124,21 +127,47 @@ public class SiteNavigation {
      * @return the generic page
      */
     @Nullable
-    private static Page getGenericPage(String pageTypeProperty, Page page) {
-        final InheritanceValueMap properties = new HierarchyNodeInheritanceValueMap(page.getContentResource());
-        String utilityPagePath = properties.getInherited(pageTypeProperty, String.class);
-        if (StringUtils.isBlank(utilityPagePath)) {
+    protected static Page getGenericPage(String pageTypeProperty, Page page) {
+
+        // We first lookup the property from the current page up the hierarchy
+        // If the page is in a Launch, the property can be found if the Launch includes the landing-page
+        InheritanceValueMap properties = new HierarchyNodeInheritanceValueMap(page.getContentResource());
+        String genericPagePath = properties.getInherited(pageTypeProperty, String.class);
+
+        // If not found and the page is in an AEM Launch
+        if (StringUtils.isBlank(genericPagePath) && LaunchUtils.isLaunchBasedPath(page.getPath())) {
+
+            // We lookup the property from the production page up the hierarchy
+            Page productionPage = toLaunchProductionPage(page);
+            if (productionPage != page) {
+                properties = new HierarchyNodeInheritanceValueMap(productionPage.getContentResource());
+                genericPagePath = properties.getInherited(pageTypeProperty, String.class);
+
+                // If the property is found, we check if the page exists in the Launch
+                // --> useful if the Launch does not contain the landing-page but does contain the (product|category|search) pages
+                if (genericPagePath != null) {
+                    Resource launchResource = LaunchUtils.getLaunchResource(page.getContentResource());
+                    String genericPagePathInLaunch = launchResource.getPath() + genericPagePath;
+                    if (page.getPageManager().getPage(genericPagePathInLaunch) != null) {
+                        genericPagePath = genericPagePathInLaunch;
+                    }
+                }
+            }
+        }
+
+        if (StringUtils.isBlank(genericPagePath)) {
             LOGGER.warn("Page property {} not found at {}", pageTypeProperty, page.getPath());
             return null;
         }
 
         PageManager pageManager = page.getPageManager();
-        Page categoryPage = pageManager.getPage(utilityPagePath);
-        if (categoryPage == null) {
-            LOGGER.warn("No page found at {}", utilityPagePath);
+        Page genericPage = pageManager.getPage(genericPagePath);
+        if (genericPage == null) {
+            LOGGER.warn("No page found at {}", genericPagePath);
             return null;
         }
-        return categoryPage;
+
+        return genericPage;
     }
 
     /**
@@ -229,5 +258,71 @@ public class SiteNavigation {
         } else {
             return String.format("%s.%s.html", pageResource.getPath(), slug);
         }
+    }
+
+    /**
+     * Checks if the given page is a Launch page, and if yes, returns the production version of the page.
+     * If the page is not a Launch page, this method returns the page itself. This allows writing code
+     * like<br>
+     * <br>
+     * <code>page = SiteNavigation.toLaunchProductionPage(page);</code>
+     * 
+     * @param page The page to be checked.
+     * @return The production version of the page if it is a Launch page, or the page itself.
+     */
+    public static Page toLaunchProductionPage(Page page) {
+        if (page == null || page.getPath() == null) {
+            return page;
+        }
+
+        PageManager pageManager = page.getPageManager();
+        if (pageManager != null && LaunchUtils.isLaunchBasedPath(page.getPath())) {
+            Resource targetResource = LaunchUtils.getTargetResource(page.adaptTo(Resource.class), null);
+            Page targetPage = pageManager.getPage(targetResource.getPath());
+            page = targetPage != null ? targetPage : page;
+        }
+        return page;
+    }
+
+    /**
+     * Returns true if the <code>currentPage</code> is the product page referenced by the <code>cq:cifProductPage</code>
+     * property in the page hierarchy. This method does support that the current page and/or the product page is
+     * located inside a Launch.
+     * 
+     * @param currentPage The page to be checked.
+     * @return true if the current page is the product page.
+     */
+    public static boolean isProductPage(Page currentPage) {
+        Page productPage = getProductPage(currentPage);
+        if (productPage == null) {
+            return false;
+        }
+
+        // The product page might be in a Launch so we first extract the paths of the production versions
+        String currentPagePath = currentPage.getPath().substring(currentPage.getPath().lastIndexOf("/content/"));
+        String productPagePath = productPage.getPath().substring(productPage.getPath().lastIndexOf("/content/"));
+
+        return currentPagePath.equals(productPagePath) || currentPagePath.startsWith(productPagePath + "/");
+    }
+
+    /**
+     * Returns true if the <code>currentPage</code> is the category page referenced by the <code>cq:cifCategoryPage</code>
+     * property in the page hierarchy. This method does support that the current page and/or the category page is
+     * located inside a Launch.
+     * 
+     * @param currentPage The page to be checked.
+     * @return true if the current page is the category page.
+     */
+    public static boolean isCategoryPage(Page currentPage) {
+        Page categoryPage = getCategoryPage(currentPage);
+        if (categoryPage == null) {
+            return false;
+        }
+
+        // The category page might be in a Launch so we first extract the paths of the production versions
+        String currentPagePath = currentPage.getPath().substring(currentPage.getPath().lastIndexOf("/content/"));
+        String categoryPagePath = categoryPage.getPath().substring(categoryPage.getPath().lastIndexOf("/content/"));
+
+        return currentPagePath.equals(categoryPagePath) || currentPagePath.startsWith(categoryPagePath + "/");
     }
 }

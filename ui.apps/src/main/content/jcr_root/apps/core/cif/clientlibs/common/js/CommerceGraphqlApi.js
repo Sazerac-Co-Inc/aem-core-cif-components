@@ -24,6 +24,7 @@ class CommerceGraphqlApi {
 
         this.endpoint = props.endpoint;
         this.storeView = props.storeView;
+        this.method = props.graphqlMethod;
     }
 
     async _fetch(url, params) {
@@ -44,7 +45,7 @@ class CommerceGraphqlApi {
         query = { query };
 
         let params = {
-            method: ignoreCache ? 'POST' : 'GET',
+            method: this.method === 'GET' && !ignoreCache ? 'GET' : 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 Store: this.storeView
@@ -52,7 +53,7 @@ class CommerceGraphqlApi {
         };
 
         let url = this.endpoint;
-        if (ignoreCache) {
+        if (params.method === 'POST') {
             // For un-cached POST request, add query to body
             params.body = JSON.stringify(query);
         } else {
@@ -69,62 +70,6 @@ class CommerceGraphqlApi {
         }
 
         return response;
-    }
-
-    /**
-     * Retrieves the URL of the images for an array of product data
-     * @param productData a dictionary object with the following structure {productName:productSku}.
-     * The productName is used for filtering the query and the product SKU is used to identify the variant for which to retrieve the image
-     * @returns {Promise<any[]>}
-     */
-    async getProductImageUrls(productData) {
-        //ugly but effective
-        let names = Object.keys(productData).reduce((acc, name) => (acc += '"' + name + '",'), '');
-        if (names.length === 0) {
-            return {};
-        }
-        // prettier-ignore
-        const query = `query { 
-            products(filter: {name: {in: [${names.substring(0, names.length - 1)}]}}) {
-                items {
-                    sku
-                    name
-                    thumbnail {  
-                        url
-                        }
-                    ... on ConfigurableProduct {
-                        variants {
-                            product {
-                                sku
-                                thumbnail {  
-                                   url
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }`;
-
-        let response = await this._fetchGraphql(query);
-        let items = response.data.products.items;
-
-        let productsMedia = {};
-        items.forEach(item => {
-            let variants = item.variants;
-            if (variants && variants.length > 0) {
-                let skus = productData[item.name];
-                let media = variants.filter(v => skus.indexOf(v.product.sku) !== -1);
-                if (media && media.length > 0) {
-                    media.forEach(v => {
-                        productsMedia[v.product.sku] = v.product.thumbnail.url;
-                    });
-                }
-            } else {
-                productsMedia[item.sku] = item.thumbnail.url;
-            }
-        });
-        return productsMedia;
     }
 
     /**
@@ -219,8 +164,8 @@ class CommerceGraphqlApi {
 
 (function() {
     function onDocumentReady() {
-        const { storeView, graphqlEndpoint } = document.querySelector('body').dataset;
-        window.CIF.CommerceGraphqlApi = new CommerceGraphqlApi({ endpoint: graphqlEndpoint, storeView });
+        const { storeView, graphqlEndpoint, graphqlMethod } = document.querySelector('body').dataset;
+        window.CIF.CommerceGraphqlApi = new CommerceGraphqlApi({ endpoint: graphqlEndpoint, storeView, graphqlMethod });
     }
 
     if (document.readyState !== 'loading') {

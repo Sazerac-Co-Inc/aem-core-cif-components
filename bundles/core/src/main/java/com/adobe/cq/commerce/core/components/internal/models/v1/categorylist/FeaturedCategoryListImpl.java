@@ -27,27 +27,44 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
+import org.apache.sling.models.annotations.Exporter;
 import org.apache.sling.models.annotations.Model;
+import org.apache.sling.models.annotations.injectorspecific.ScriptVariable;
 import org.apache.sling.models.annotations.injectorspecific.Self;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.adobe.cq.commerce.core.components.client.MagentoGraphqlClient;
+import com.adobe.cq.commerce.core.components.datalayer.CategoryData;
+import com.adobe.cq.commerce.core.components.internal.datalayer.CategoryListDataImpl;
+import com.adobe.cq.commerce.core.components.internal.datalayer.DataLayerComponent;
+import com.adobe.cq.commerce.core.components.internal.models.v1.common.CommerceIdentifierImpl;
+import com.adobe.cq.commerce.core.components.internal.models.v1.common.TitleTypeProvider;
 import com.adobe.cq.commerce.core.components.models.categorylist.FeaturedCategoryList;
+import com.adobe.cq.commerce.core.components.models.categorylist.FeaturedCategoryListItem;
+import com.adobe.cq.commerce.core.components.models.common.CommerceIdentifier;
 import com.adobe.cq.commerce.core.components.models.retriever.AbstractCategoriesRetriever;
 import com.adobe.cq.commerce.core.components.services.UrlProvider;
 import com.adobe.cq.commerce.core.components.services.UrlProvider.ParamsBuilder;
 import com.adobe.cq.commerce.core.components.utils.SiteNavigation;
 import com.adobe.cq.commerce.magento.graphql.CategoryTree;
+import com.adobe.cq.export.json.ComponentExporter;
+import com.adobe.cq.export.json.ExporterConstants;
+import com.adobe.cq.wcm.core.components.models.datalayer.ComponentData;
 import com.day.cq.dam.api.Asset;
 import com.day.cq.dam.api.Rendition;
 import com.day.cq.wcm.api.Page;
+import com.day.cq.wcm.api.designer.Style;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Model(
     adaptables = SlingHttpServletRequest.class,
-    adapters = FeaturedCategoryList.class,
+    adapters = { FeaturedCategoryList.class, ComponentExporter.class },
     resourceType = com.adobe.cq.commerce.core.components.internal.models.v1.categorylist.FeaturedCategoryListImpl.RESOURCE_TYPE)
-public class FeaturedCategoryListImpl implements FeaturedCategoryList {
+@Exporter(
+    name = ExporterConstants.SLING_MODEL_EXPORTER_NAME,
+    extensions = ExporterConstants.SLING_MODEL_EXTENSION)
+public class FeaturedCategoryListImpl extends DataLayerComponent implements FeaturedCategoryList {
 
     protected static final String RESOURCE_TYPE = "core/cif/components/commerce/featuredcategorylist/v1/featuredcategorylist";
     private static final Logger LOGGER = LoggerFactory.getLogger(FeaturedCategoryListImpl.class);
@@ -59,9 +76,6 @@ public class FeaturedCategoryListImpl implements FeaturedCategoryList {
     private static final String ITEMS_PROP = "items";
 
     @Inject
-    private Resource resource;
-
-    @Inject
     private Page currentPage;
 
     @Inject
@@ -69,6 +83,9 @@ public class FeaturedCategoryListImpl implements FeaturedCategoryList {
 
     @Self
     private SlingHttpServletRequest request;
+
+    @ScriptVariable
+    protected Style currentStyle;
 
     private Map<String, Asset> assetOverride;
     private Page categoryPage;
@@ -110,8 +127,8 @@ public class FeaturedCategoryListImpl implements FeaturedCategoryList {
                 assetOverride.put(categoryId, overrideAsset);
             }
 
-            if (categoryIds.size() > 0) {
-                MagentoGraphqlClient magentoGraphqlClient = MagentoGraphqlClient.create(resource);
+            if (!categoryIds.isEmpty()) {
+                MagentoGraphqlClient magentoGraphqlClient = MagentoGraphqlClient.create(resource, currentPage, request);
                 if (magentoGraphqlClient != null) {
                     categoriesRetriever = new CategoriesRetriever(magentoGraphqlClient);
                     categoriesRetriever.setIdentifiers(categoryIds);
@@ -121,10 +138,12 @@ public class FeaturedCategoryListImpl implements FeaturedCategoryList {
     }
 
     @Override
+    @JsonIgnore
     public List<CategoryTree> getCategories() {
         if (categoriesRetriever == null) {
             return Collections.emptyList();
         }
+
         List<CategoryTree> categories = categoriesRetriever.fetchCategories();
         for (CategoryTree category : categories) {
             Map<String, String> params = new ParamsBuilder()
@@ -150,12 +169,59 @@ public class FeaturedCategoryListImpl implements FeaturedCategoryList {
     }
 
     @Override
+    public List<FeaturedCategoryListItem> getCategoryItems() {
+        if (!isConfigured()) {
+            return Collections.emptyList();
+        }
+
+        List<FeaturedCategoryListItem> categories = new ArrayList<>();
+
+        resource.getChild(ITEMS_PROP).getChildren().forEach(resource -> {
+            ValueMap props = resource.adaptTo(ValueMap.class);
+            String categoryId = props.get(CATEGORY_ID_PROP, String.class);
+            String assetPath = props.get(ASSET_PROP, String.class);
+            if (StringUtils.isNotEmpty(categoryId)) {
+                categories.add(
+                    new FeaturedCategoryListItemImpl(new CommerceIdentifierImpl(categoryId, CommerceIdentifier.IdentifierType.ID,
+                        CommerceIdentifier.EntityType.CATEGORY), assetPath));
+            }
+        });
+
+        return categories;
+    }
+
+    @Override
     public boolean isConfigured() {
         return resource.getChild(ITEMS_PROP) != null;
     }
 
     @Override
+    @JsonIgnore
     public AbstractCategoriesRetriever getCategoriesRetriever() {
         return this.categoriesRetriever;
+    }
+
+    // DataLayer methods
+
+    @Override
+    protected ComponentData getComponentData() {
+        return new CategoryListDataImpl(this, resource);
+    }
+
+    @Override
+    public CategoryData[] getDataLayerCategories() {
+        return getCategories().stream()
+            .map(c -> new CategoryListDataImpl.CategoryDataImpl(c.getId().toString(), c.getName(), c.getImage()))
+            .toArray(CategoryData[]::new);
+    }
+
+    @Override
+    public String getTitleType() {
+        return TitleTypeProvider.getTitleType(currentStyle, resource.getValueMap());
+    }
+
+    @Override
+    public String getExportedType() {
+        return RESOURCE_TYPE;
     }
 }

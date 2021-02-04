@@ -12,32 +12,22 @@
  *
  ******************************************************************************/
 import React from 'react';
-import { LogOut as SignOutIcon, Lock as PasswordIcon } from 'react-feather';
 import { useTranslation } from 'react-i18next';
+import { func } from 'prop-types';
 
-import AccountLink from './accountLink';
 import LoadingIndicator from '../LoadingIndicator';
 
 import classes from './myAccount.css';
 import { useUserContext } from '../../context/UserContext';
-import { useCartState } from '../Minicart/cartContext';
 
-import { func } from 'prop-types';
+import { SignOutLink, AccountInfoLink, AddressBookLink, ChangePasswordLink } from './AccountLinks';
 
 const MyAccount = props => {
-    const { showMenu, showChangePassword, showUpdateCustomerBillingAddress, showUpdateCustomerShippingAddress, showOrderHistory } = props;
-    const [{ currentUser, isSignedIn, inProgress }, { signOut }] = useUserContext();
-    const [, dispatch] = useCartState();
-
+    const { showMenu, showChangePassword, showAccountInformation } = props;
+    const [{ currentUser, inProgress }] = useUserContext();
     const [t] = useTranslation('account');
 
-    const handleSignOut = () => {
-        dispatch({ type: 'reset' });
-        signOut();
-    };
-
     if (inProgress) {
-        console.log('in p', currentUser);
         return (
             <div className={classes.modal_active}>
                 <LoadingIndicator>{t('account:signing-in', 'Signing In')}</LoadingIndicator>
@@ -45,9 +35,14 @@ const MyAccount = props => {
         );
     }
 
-    if (!isSignedIn) {
-        showMenu();
-    }
+    const accountLinks = props.children || (
+        <>
+            <ChangePasswordLink showChangePassword={showChangePassword} />
+            <AddressBookLink />
+            <AccountInfoLink showAccountInformation={showAccountInformation} />
+            <SignOutLink showMenu={showMenu} />
+        </>
+    );
 
     return (
         <div className={classes.root}>
@@ -55,38 +50,15 @@ const MyAccount = props => {
                 <h2 className={classes.title}>{`${currentUser.firstname} ${currentUser.lastname}`}</h2>
                 <span className={classes.subtitle}>{currentUser.email}</span>
             </div>
-            <div className={classes.actions}>
-                <AccountLink onClick={showUpdateCustomerBillingAddress}>
-                    <PasswordIcon size={18} />
-                    Update Billing Address
-                </AccountLink>
-                <AccountLink onClick={showUpdateCustomerShippingAddress}>
-                    <PasswordIcon size={18} />
-                    Update Shipping Address
-                </AccountLink>
-                <AccountLink onClick={showOrderHistory}>
-                    <PasswordIcon size={18} />
-                    Order History
-                </AccountLink>
-                <AccountLink onClick={showChangePassword}>
-                    <PasswordIcon size={18} />
-                    {t('account:change-password', 'Change Password')}
-                </AccountLink>
-                <AccountLink onClick={handleSignOut}>
-                    <SignOutIcon size={18} />
-                    {t('account:sign-out', 'Sign Out')}
-                </AccountLink>
-            </div>
+            <div className={classes.actions}>{accountLinks}</div>
         </div>
     );
 };
 
 MyAccount.propTypes = {
-    showMenu: func.isRequired,
-    showChangePassword: func.isRequired,
-    showUpdateCustomerBillingAddress: func.isRequired,
-    showUpdateCustomerShippingAddress: func.isRequired,
-    showOrderHistory: func.isRequired
+    showMenu: func,
+    showAccountInformation: func.isRequired,
+    showChangePassword: func.isRequired
 };
 
 export default MyAccount;

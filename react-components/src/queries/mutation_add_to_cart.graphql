@@ -1,4 +1,4 @@
-mutation($cartId: String!, $cartItems: [SimpleProductCartItemInput]!) {
+mutation addSimpleProductToCart($cartId: String!, $cartItems: [SimpleProductCartItemInput]!) {
     addSimpleProductsToCart(input: { cart_id: $cartId, cart_items: $cartItems }) {
         cart {
             items {
@@ -6,6 +6,9 @@ mutation($cartId: String!, $cartItems: [SimpleProductCartItemInput]!) {
                 quantity
                 product {
                     name
+                    thumbnail {
+                        url
+                    }
                 }
             }
         }

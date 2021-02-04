@@ -15,7 +15,9 @@
 
 <header class="header__root header__closed">
     <div class="header__toolbar">
-        <a href="${header.navigationRootPageUrl}"><img class="header__logo" src="${resource.path}/logo.svg" height="24" alt="Venia" title="Venia" /></a>
+        <a href="${header.navigationRootPageUrl}">
+            <img class="header__logo" src="${resource.path}/logo.svg" height="24" alt="${header.navigationRootPageTitle}" title="${header.navigationRootPageTitle}" />
+        </a>
         <div class="header__primaryActions">
             <sly data-sly-test="${resource['navigation/navigationRoot']}" data-sly-resource="${resource.path}/navigation" />
         </div>
@@ -27,6 +29,9 @@
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg></span>
             </button>
+            <div class="header__accountTrigger">
+                <sly data-sly-test="${header.miniaccountResource}" data-sly-resource="${header.miniaccountResource}"></sly>
+            </div>
             <div class="header__cartTrigger"></div>
             <sly data-sly-test="${header.minicartResource}" data-sly-resource="${header.minicartResource}"></sly>
         </div>

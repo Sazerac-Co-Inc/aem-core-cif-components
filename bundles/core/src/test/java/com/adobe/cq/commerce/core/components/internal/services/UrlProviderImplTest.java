@@ -14,6 +14,7 @@
 
 package com.adobe.cq.commerce.core.components.internal.services;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -94,6 +95,29 @@ public class UrlProviderImplTest {
     }
 
     @Test
+    public void testCategoryUrlMissingParams() {
+        class MockUrlProviderConfigurationMissingParams extends MockUrlProviderConfiguration {
+            @Override
+            public String categoryUrlTemplate() {
+                return "${page}.${id}.html/${url_path}";
+            }
+        }
+
+        MockUrlProviderConfigurationMissingParams config = new MockUrlProviderConfigurationMissingParams();
+        urlProvider = new UrlProviderImpl();
+        urlProvider.activate(config);
+
+        Page page = context.currentPage("/content/category-page");
+        request.setAttribute(WCMMode.class.getName(), WCMMode.EDIT);
+        Map<String, String> params = new ParamsBuilder()
+            .id("42")
+            .map();
+
+        String url = urlProvider.toCategoryUrl(request, page, params);
+        Assert.assertEquals("/content/category-page.42.html/${url_path}", url);
+    }
+
+    @Test
     public void testCategoryUrlWithOldSyntax() {
         MockUrlProviderConfiguration config = new MockUrlProviderConfiguration(true);
         Assert.assertTrue(config.categoryUrlTemplate().contains("${"));
@@ -115,6 +139,33 @@ public class UrlProviderImplTest {
     }
 
     @Test
+    public void testCategoryUrlWithSubpage() {
+        Page page = context.currentPage("/content/category-page");
+        request.setAttribute(WCMMode.class.getName(), WCMMode.EDIT);
+
+        Map<String, String> params = new ParamsBuilder()
+            .id("42")
+            .urlPath("men/tops/shirts")
+            .map();
+
+        String url = urlProvider.toCategoryUrl(request, page, params);
+        Assert.assertEquals("/content/category-page/sub-page-with-urlpath.42.html", url);
+    }
+
+    @Test
+    public void testNestedCategoryUrl() {
+        Page page = context.currentPage("/content/category-page");
+        request.setAttribute(WCMMode.class.getName(), WCMMode.EDIT);
+
+        Map<String, String> params = new ParamsBuilder()
+            .id("categoryId1.1")
+            .map();
+
+        String url = urlProvider.toCategoryUrl(request, page, params);
+        Assert.assertEquals("/content/category-page/sub-page/nested-page.categoryId1.1.html", url);
+    }
+
+    @Test
     public void testProductUrlWithCustomPage() {
         Map<String, String> params = new ParamsBuilder()
             .urlKey("beaumont-summit-kit")
@@ -131,18 +182,35 @@ public class UrlProviderImplTest {
         request.setAttribute(WCMMode.class.getName(), WCMMode.EDIT);
 
         Map<String, String> params = new ParamsBuilder()
-            .urlKey("productId1")
+            .urlKey("productId2")
             .variantSku("variantSku")
             .map();
 
         String url = urlProvider.toProductUrl(request, page, params);
-        Assert.assertEquals("/content/product-page/sub-page.productId1.html#variantSku", url);
+        Assert.assertEquals("/content/product-page/sub-page-2.productId2.html#variantSku", url);
+    }
+
+    @Test
+    public void testNestedProductUrlWithAnchor() {
+        Page page = context.currentPage("/content/product-page");
+        request.setAttribute(WCMMode.class.getName(), WCMMode.EDIT);
+
+        Map<String, String> params = new ParamsBuilder()
+            .urlKey("productId1.1")
+            .variantSku("variantSku")
+            .map();
+
+        String url = urlProvider.toProductUrl(request, page, params);
+        Assert.assertEquals("/content/product-page/sub-page/nested-page.productId1.1.html#variantSku", url);
     }
 
     @Test
     public void testProductIdentifierParsingInSelector() {
         MockRequestPathInfo requestPathInfo = (MockRequestPathInfo) context.request().getRequestPathInfo();
-        requestPathInfo.setSelectorString("beaumont-summit-kit");
+
+        // For example for lazy loading, we have two selectors and the id is in the last position
+        requestPathInfo.setSelectorString("lazy.beaumont-summit-kit");
+
         Pair<ProductIdentifierType, String> id = urlProvider.getProductIdentifier(context.request());
         Assert.assertEquals(ProductIdentifierType.URL_KEY, id.getLeft());
         Assert.assertEquals("beaumont-summit-kit", id.getRight());
@@ -162,5 +230,23 @@ public class UrlProviderImplTest {
         Pair<ProductIdentifierType, String> id = urlProvider.getProductIdentifier(context.request());
         Assert.assertEquals(ProductIdentifierType.SKU, id.getLeft());
         Assert.assertEquals("MJ01", id.getRight());
+    }
+
+    @Test
+    public void testStringSubstitutor() {
+        Map<String, String> params = new HashMap<>();
+
+        // empty params, valid prefix & suffix
+        UrlProviderImpl.StringSubstitutor sub = new UrlProviderImpl.StringSubstitutor(params, "${", "}");
+        Assert.assertEquals("Wrong substitution", "${test}", sub.replace("${test}"));
+
+        // valid params, no prefix & suffix
+        params.put("test", "value");
+        sub = new UrlProviderImpl.StringSubstitutor(params, null, null);
+        Assert.assertEquals("Wrong substitution", "${value}-value", sub.replace("${test}-test"));
+
+        // valid params, prefix & suffix
+        sub = new UrlProviderImpl.StringSubstitutor(params, "${", "}");
+        Assert.assertEquals("Wrong substitution", "value-value", sub.replace("${test}-${test}"));
     }
 }

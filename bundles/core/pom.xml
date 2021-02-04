@@ -20,7 +20,7 @@
     <parent>
         <groupId>com.adobe.commerce.cif</groupId>
         <artifactId>core-cif-components-parent</artifactId>
-        <version>1.1.16</version>
+        <version>1.7.0</version>
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
 
@@ -38,7 +38,7 @@
         <connection>scm:git:https://github.com/adobe/aem-core-cif-components</connection>
         <developerConnection>scm:git:git@github.com:adobe/aem-core-cif-components.git</developerConnection>
         <url>https://github.com/adobe/aem-core-cif-components</url>
-        <tag>core-cif-components-reactor-1.1.15</tag>
+        <tag>core-cif-components-reactor-1.7.0</tag>
     </scm>
     <organization>
         <name>Adobe</name>
@@ -55,7 +55,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jacoco.data.file>${project.build.directory}/jacoco.exec</jacoco.data.file>
         <formatter.config>../../eclipse-formatter.xml</formatter.config>
-        <baseline.skip>true</baseline.skip>
+        <baseline.skip>false</baseline.skip>
     </properties>
 
     <build>
@@ -108,6 +108,56 @@
                 <groupId>net.revelc.code</groupId>
                 <artifactId>impsort-maven-plugin</artifactId>
             </plugin>
+            
+            <plugin>
+                <groupId>de.andrena.tools.macker</groupId>
+                <artifactId>macker-maven-plugin</artifactId>
+                <version>1.0.2</version>
+                <configuration>
+                    <rule>macker-rules.xml</rule>
+                    <includeTests>true</includeTests>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>macker</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <source>${aem.java.version}</source>
+                    <quiet>true</quiet>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -127,15 +177,10 @@
                         <artifactId>jacoco-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>default-instrument</id>
+                                <id>prepare-agent</id>
+                                <phase>test-compile</phase>
                                 <goals>
-                                    <goal>instrument</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>default-restore-instrumented-classes</id>
-                                <goals>
-                                    <goal>restore-instrumented-classes</goal>
+                                    <goal>prepare-agent</goal>
                                 </goals>
                             </execution>
                             <execution>
@@ -153,7 +198,7 @@
                                                 <limit>
                                                     <counter>BRANCH</counter>
                                                     <value>COVEREDRATIO</value>
-                                                    <minimum>0.55</minimum>
+                                                    <minimum>0.75</minimum>
                                                 </limit>
                                             </limits>
                                         </rule>
@@ -200,15 +245,6 @@
                     </plugin>
                 </plugins>
             </build>
-            <dependencies>
-                <dependency>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>org.jacoco.agent</artifactId>
-                    <version>${jacoco.version}</version>
-                    <classifier>runtime</classifier>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
         </profile>
 
         <profile>
@@ -287,29 +323,6 @@
                 </plugins>
             </build>
         </profile>
-        <profile>
-            <!-- This is the release profile. -->
-            <id>release</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
 
     <!-- ====================================================================== -->
@@ -366,10 +379,6 @@
             <groupId>com.adobe.cq</groupId>
             <artifactId>com.adobe.cq.export.json</artifactId>
             <version>0.1.10</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-text</artifactId>
         </dependency>
         <dependency>
             <groupId>com.adobe.aem</groupId>

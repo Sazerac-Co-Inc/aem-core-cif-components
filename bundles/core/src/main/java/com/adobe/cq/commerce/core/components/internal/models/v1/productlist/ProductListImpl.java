@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.models.annotations.Model;
+import org.apache.sling.models.annotations.injectorspecific.InjectionStrategy;
 import org.apache.sling.models.annotations.injectorspecific.ScriptVariable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,11 @@ import com.adobe.cq.commerce.magento.graphql.CategoryProducts;
 import com.adobe.cq.commerce.magento.graphql.ProductInterfaceQuery;
 import com.adobe.cq.sightly.SightlyWCMMode;
 
-@Model(adaptables = SlingHttpServletRequest.class, adapters = ProductList.class, resourceType = ProductListImpl.RESOURCE_TYPE)
+@Model(
+    adaptables = SlingHttpServletRequest.class,
+    adapters = ProductList.class,
+    resourceType = ProductListImpl.RESOURCE_TYPE,
+    cache = true)
 public class ProductListImpl extends ProductCollectionImpl implements ProductList {
 
     protected static final String RESOURCE_TYPE = "core/cif/components/commerce/productlist/v1/productlist";
@@ -63,11 +68,13 @@ public class ProductListImpl extends ProductCollectionImpl implements ProductLis
     private boolean showTitle;
     private boolean showImage;
 
-    @ScriptVariable(name = "wcmmode")
+    // This script variable is not injected when the model is instantiated in SpecificPageServlet
+    @ScriptVariable(name = "wcmmode", injectionStrategy = InjectionStrategy.OPTIONAL)
     private SightlyWCMMode wcmMode = null;
 
     private AbstractCategoryRetriever categoryRetriever;
     private boolean usePlaceholderData;
+    private String canonicalUrl;
 
     private Pair<CategoryInterface, SearchResultsSet> categorySearchResultsSet;
 
@@ -83,17 +90,24 @@ public class ProductListImpl extends ProductCollectionImpl implements ProductLis
 
         Map<String, String> searchFilters = createFilterMap(request.getParameterMap());
 
-        MagentoGraphqlClient magentoGraphqlClient = MagentoGraphqlClient.create(resource);
+        MagentoGraphqlClient magentoGraphqlClient = MagentoGraphqlClient.create(resource, currentPage, request);
 
         // Parse category identifier from URL
         Pair<CategoryIdentifierType, String> identifier = urlProvider.getCategoryIdentifier(request);
+        boolean isAuthorInstance = wcmMode != null && !wcmMode.isDisabled();
+
+        if (isAuthorInstance) {
+            canonicalUrl = externalizer.authorLink(resource.getResourceResolver(), request.getRequestURI());
+        } else {
+            canonicalUrl = externalizer.publishLink(resource.getResourceResolver(), request.getRequestURI());
+        }
 
         // get GraphQL client and query data
         if (magentoGraphqlClient != null) {
             if (identifier != null && StringUtils.isNotBlank(identifier.getRight())) {
                 categoryRetriever = new CategoryRetriever(magentoGraphqlClient);
                 categoryRetriever.setIdentifier(identifier.getLeft(), identifier.getRight());
-            } else if (!wcmMode.isDisabled()) {
+            } else if (isAuthorInstance) {
                 usePlaceholderData = true;
                 loadClientPrice = false;
                 try {
@@ -101,6 +115,10 @@ public class ProductListImpl extends ProductCollectionImpl implements ProductLis
                 } catch (IOException e) {
                     LOGGER.warn("Cannot use placeholder data", e);
                 }
+            } else { // There isn't any selector on publish instance
+                searchResultsSet = new SearchResultsSetImpl();
+                categorySearchResultsSet = Pair.of(null, searchResultsSet);
+                return;
             }
         }
 
@@ -114,7 +132,6 @@ public class ProductListImpl extends ProductCollectionImpl implements ProductLis
             searchOptions.setCategoryId(identifier.getRight());
 
             // configure sorting
-            searchOptions.addSorterKey("position", "Position", Sorter.Order.DESC);
             searchOptions.addSorterKey("price", "Price", Sorter.Order.ASC);
             searchOptions.addSorterKey("name", "Product Name", Sorter.Order.ASC);
         }
@@ -130,6 +147,11 @@ public class ProductListImpl extends ProductCollectionImpl implements ProductLis
     @Override
     public boolean showTitle() {
         return showTitle;
+    }
+
+    // Not OSGi exported but public so UrlProviderImpl can use it
+    public String getUrlPath() {
+        return getCategory() != null ? getCategory().getUrlPath() : null;
     }
 
     @Override
@@ -154,7 +176,8 @@ public class ProductListImpl extends ProductCollectionImpl implements ProductLis
     public Collection<ProductListItem> getProducts() {
         if (usePlaceholderData) {
             CategoryProducts categoryProducts = getCategory().getProducts();
-            ProductToProductListItemConverter converter = new ProductToProductListItemConverter(productPage, request, urlProvider);
+            ProductToProductListItemConverter converter = new ProductToProductListItemConverter(productPage, request, urlProvider,
+                resource);
             return categoryProducts.getItems().stream()
                 .map(converter)
                 .filter(Objects::nonNull) // the converter returns null if the conversion fails
@@ -176,14 +199,12 @@ public class ProductListImpl extends ProductCollectionImpl implements ProductLis
                     .filter(searchAggregation -> !SearchOptionsImpl.CATEGORY_ID_PARAMETER_ID.equals(searchAggregation.getIdentifier()))
                     .collect(Collectors.toList()));
         }
-
         return searchResultsSet;
     }
 
     private Pair<CategoryInterface, SearchResultsSet> getCategorySearchResultsSet() {
         if (categorySearchResultsSet == null) {
             Consumer<ProductInterfaceQuery> productQueryHook = categoryRetriever != null ? categoryRetriever.getProductQueryHook() : null;
-
             categorySearchResultsSet = searchResultsService
                 .performSearch(searchOptions, resource, productPage, request, productQueryHook, categoryRetriever);
         }
@@ -200,5 +221,25 @@ public class ProductListImpl extends ProductCollectionImpl implements ProductLis
     @Override
     public AbstractCategoryRetriever getCategoryRetriever() {
         return categoryRetriever;
+    }
+
+    @Override
+    public String getMetaDescription() {
+        return getCategory() != null ? getCategory().getMetaDescription() : null;
+    }
+
+    @Override
+    public String getMetaKeywords() {
+        return getCategory() != null ? getCategory().getMetaKeywords() : null;
+    }
+
+    @Override
+    public String getMetaTitle() {
+        return StringUtils.defaultString(getCategory() != null ? getCategory().getMetaTitle() : null, getTitle());
+    }
+
+    @Override
+    public String getCanonicalUrl() {
+        return canonicalUrl;
     }
 }

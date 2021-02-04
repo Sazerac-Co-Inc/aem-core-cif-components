@@ -18,7 +18,7 @@
     <parent>
         <groupId>com.adobe.commerce.cif</groupId>
         <artifactId>core-cif-components-parent</artifactId>
-        <version>1.1.16</version>
+        <version>1.7.0</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
@@ -31,12 +31,22 @@
 
     <modules>
         <module>bundle</module>
+        <module>ui.frontend</module>
         <module>ui.apps</module>
+        <module>ui.config</module>
         <module>ui.content</module>
+        <module>all</module>
     </modules>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

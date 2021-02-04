@@ -50,6 +50,7 @@ public abstract class AbstractCategoryRetriever extends AbstractRetriever {
     /**
      * Media base url from the Magento store info. Is only available after populate() was called.
      */
+    @Deprecated
     protected String mediaBaseUrl;
 
     /**
@@ -91,7 +92,7 @@ public abstract class AbstractCategoryRetriever extends AbstractRetriever {
     /**
      * Sets the current page for product pagination.
      *
-     * @param currentPage
+     * @param currentPage The current AEM page.
      */
     public void setCurrentPage(int currentPage) {
         this.currentPage = currentPage;
@@ -100,7 +101,7 @@ public abstract class AbstractCategoryRetriever extends AbstractRetriever {
     /**
      * Sets the page size for product pagination.
      *
-     * @param pageSize
+     * @param pageSize The page size.
      */
     public void setPageSize(int pageSize) {
         this.pageSize = pageSize;

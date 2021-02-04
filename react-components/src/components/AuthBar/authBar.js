@@ -17,11 +17,11 @@ import { useTranslation } from 'react-i18next';
 import Button from '../Button';
 import classes from './authBar.css';
 import { useUserContext } from '../../context/UserContext';
-import { useNavigationContext } from '../../context/NavigationContext';
 import UserChip from './userChip';
+import { func } from 'prop-types';
+import * as dataLayerUtils from '../../utils/dataLayerUtils';
 
-const AuthBar = () => {
-    const [, { showSignIn, showMyAccount }] = useNavigationContext();
+const AuthBar = ({ showMyAccount, showSignIn }) => {
     const [{ currentUser, isSignedIn }, { getUserDetails }] = useUserContext();
 
     useEffect(() => {
@@ -29,6 +29,15 @@ const AuthBar = () => {
             getUserDetails();
         }
     }, [getUserDetails]);
+
+    useEffect(() => {
+        if (!isSignedIn) {
+            dataLayerUtils.pushData({ user: null });
+        } else if (isSignedIn && currentUser.email !== '') {
+            dataLayerUtils.pushData({ user: currentUser });
+        }
+    }, [isSignedIn, currentUser]);
+
     const [t] = useTranslation('account');
 
     const disabled = false;
@@ -41,6 +50,11 @@ const AuthBar = () => {
         </Button>
     );
     return <div className={classes.root}>{content}</div>;
+};
+
+AuthBar.propTypes = {
+    showMyAccount: func,
+    showSignIn: func
 };
 
 export default AuthBar;

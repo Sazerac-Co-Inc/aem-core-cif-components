@@ -20,10 +20,12 @@ import java.util.Map;
 import com.adobe.cq.commerce.core.components.models.common.Price;
 
 /**
- * Variant is a view model interface representing a product variant that contains
- * properties specific to a variant in comparison to its base product.
+ * Variant is a view model interface representing a product variant that
+ * contains properties specific to a variant in comparison to its base product.
  */
 public interface Variant {
+    String getId();
+
     String getName();
 
     String getDescription();
@@ -31,18 +33,21 @@ public interface Variant {
     String getSku();
 
     /**
+     * @return The price currency.
      * @deprecated Please use getPriceRange() instead.
      */
     @Deprecated
     String getCurrency();
 
     /**
+     * @return The price.
      * @deprecated Please use getPriceRange() instead.
      */
     @Deprecated
     Double getPrice();
 
     /**
+     * @return The formatted price including the currency.
      * @deprecated Please use getPriceRange() instead.
      */
     @Deprecated

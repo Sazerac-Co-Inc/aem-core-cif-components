@@ -11,8 +11,12 @@
  *    governing permissions and limitations under the License.
  *
  ******************************************************************************/
+
+/* eslint-disable react/prop-types */
+
 import React from 'react';
-import { render, fireEvent, waitForElement } from '@testing-library/react';
+import { fireEvent, waitForElement } from '@testing-library/react';
+import { render } from '../../../utils/test-utils';
 import { act } from 'react-dom/test-utils';
 import useMinicart from '../useMinicart';
 import { CartProvider } from '../cartContext';
@@ -54,7 +58,7 @@ describe('useMinicart', () => {
     it('adds an item to cart', async () => {
         const mockEvent = { detail: [{ sku: '123', quantity: 2 }] };
 
-        const { getByRole, getByTestId, debug } = render(
+        const { getByRole, getByTestId } = render(
             <CartProvider initialState={{ cartId: 'guest123' }}>
                 <MockComponent event={mockEvent} />
             </CartProvider>

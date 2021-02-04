@@ -12,57 +12,91 @@
  *
  ******************************************************************************/
 import React from 'react';
-import { MockedProvider } from '@apollo/react-testing';
-import { render, waitForElement } from '@testing-library/react';
+import { wait } from '@testing-library/react';
+import { render } from '../../../utils/test-utils';
 import EditableForm from '../editableForm';
-import { CartProvider } from '../../Minicart/cartContext';
+import { CartProvider } from '../../Minicart';
 import { CheckoutProvider } from '../checkoutContext';
-import UserContextProvider from '../../../context/UserContext';
+import mocksQueryCountries from '../../../utils/mocks/queryCountries';
 
+import CREATE_BRAINTREE_CLIENT_TOKEN from '../../../queries/mutation_create_braintree_client_token.graphql';
 import QUERY_COUNTRIES from '../../../queries/query_countries.graphql';
 
 describe('<EditableForm />', () => {
     it('renders the shipping address form if countries are loaded', async () => {
-        const mocks = [
+        const { queryByText } = render(
+            <CartProvider initialState={{}} reducerFactory={() => state => state}>
+                <CheckoutProvider initialState={{ editing: 'address', flowState: 'form' }} reducer={state => state}>
+                    <EditableForm />
+                </CheckoutProvider>
+            </CartProvider>
+        );
+        await wait(() => {
+            expect(queryByText('Shipping Address')).not.toBeNull();
+        });
+    });
+
+    it('renders the payments form if countries are loaded', async () => {
+        const mocksPaymentsForm = [
+            mocksQueryCountries,
             {
                 request: {
-                    query: QUERY_COUNTRIES
+                    query: CREATE_BRAINTREE_CLIENT_TOKEN
                 },
                 result: {
                     data: {
-                        countries: [
-                            {
-                                id: 'US',
-                                available_regions: [
-                                    { code: 'AL', name: 'Alabama' },
-                                    { code: 'AK', name: 'Alaska' }
-                                ]
-                            }
-                        ]
+                        createBraintreeClientToken: 'my-sample-token'
                     }
                 }
             }
         ];
 
+        const mockCartState = {
+            cart: {
+                available_payment_methods: [
+                    {
+                        code: 'braintree',
+                        title: 'Credit Card (Braintree)'
+                    },
+                    {
+                        code: 'checkmo',
+                        title: 'Check / Money order'
+                    }
+                ],
+                is_virtual: false
+            }
+        };
+
+        let mockReducer = jest.fn(state => state);
         const { queryByText } = render(
-            <MockedProvider mocks={mocks} addTypename={false}>
-                <UserContextProvider>
-                    <CartProvider initialState={{}} reducerFactory={() => state => state}>
-                        <CheckoutProvider
-                            initialState={{ editing: 'address', flowState: 'form' }}
-                            reducer={state => state}>
-                            <EditableForm />
-                        </CheckoutProvider>
-                    </CartProvider>
-                </UserContextProvider>
-            </MockedProvider>
+            <CartProvider initialState={mockCartState} reducerFactory={() => state => state}>
+                <CheckoutProvider initialState={{ editing: 'paymentMethod', flowState: 'form' }} reducer={mockReducer}>
+                    <EditableForm />
+                </CheckoutProvider>
+            </CartProvider>,
+            { mocks: mocksPaymentsForm }
         );
 
-        const result = await waitForElement(() => {
-            return queryByText('Shipping Address');
+        await wait(() => {
+            expect(queryByText('Billing Information')).not.toBeNull();
+            expect(mockReducer.mock.calls.length).toBe(1);
         });
+    });
 
-        expect(result).not.toBeNull();
+    it('renders the shipping method form if countries are loaded', async () => {
+        const { queryByText } = render(
+            <CartProvider initialState={{}} reducerFactory={() => state => state}>
+                <CheckoutProvider
+                    initialState={{ editing: 'shippingMethod', flowState: 'form' }}
+                    reducer={state => state}>
+                    <EditableForm />
+                </CheckoutProvider>
+            </CartProvider>
+        );
+
+        await wait(() => {
+            expect(queryByText('Shipping Information')).not.toBeNull();
+        });
     });
 
     it('does not render the shipping address form if countries could not be loaded', async () => {
@@ -80,19 +114,16 @@ describe('<EditableForm />', () => {
         ];
 
         const { asFragment } = render(
-            <MockedProvider mocks={mocks} addTypename={false}>
-                <UserContextProvider>
-                    <CartProvider initialState={{}} reducerFactory={() => state => state}>
-                        <CheckoutProvider
-                            initialState={{ editing: 'address', flowState: 'form' }}
-                            reducer={state => state}>
-                            <EditableForm />
-                        </CheckoutProvider>
-                    </CartProvider>
-                </UserContextProvider>
-            </MockedProvider>
+            <CartProvider initialState={{}} reducerFactory={() => state => state}>
+                <CheckoutProvider initialState={{ editing: 'address', flowState: 'form' }} reducer={state => state}>
+                    <EditableForm />
+                </CheckoutProvider>
+            </CartProvider>,
+            { mocks: mocks }
         );
 
-        expect(asFragment()).toMatchSnapshot();
+        await wait(() => {
+            expect(asFragment()).toMatchSnapshot();
+        });
     });
 });

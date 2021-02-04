@@ -23,7 +23,13 @@
     <relatedproducts/>
     <productlist/>
     <search/>
+    <categorycarousel/>
     <featuredcategorylist/>
     <teaser/>
     <navigation/>
+    <breadcrumb/>
+    <minicart/>
+    <carttrigger/>
+    <resetpassword/>
+    <experiencefragment/>
 </jcr:root>
