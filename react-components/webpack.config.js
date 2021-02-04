@@ -58,7 +58,7 @@ module.exports = {
                         loader: 'css-loader',
                         options: {
                             modules: {
-                                localIdentName: 'cmp-[folder]__[name]__[local]'
+                                localIdentName: '[name]__[local]'
                             }
                         }
                     }

@@ -4,3 +4,13 @@
     margin: 0 1.5rem;
     padding: 1.5rem 0;
 }
+
+.header {
+    padding: 0 1.85rem;
+}
+
+.headerTitle {
+    display: inline-block;
+    padding-right: 6px;
+    margin-bottom: 0px;
+}

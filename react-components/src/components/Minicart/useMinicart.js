@@ -22,7 +22,8 @@ export default ({ queries }) => {
         cartDetailsQuery,
         addVirtualItemMutation,
         addBundleItemMutation,
-        addSimpleAndVirtualItemMutation
+        addSimpleAndVirtualItemMutation,
+        addConfigurableItemMutation
     } = queries;
 
     const [{ cartId, cart, isOpen, isLoading, isEditing, errorMessage }, dispatch] = useCartState();
@@ -57,6 +58,29 @@ export default ({ queries }) => {
         let physicalCartItems = event.detail.filter(item => !item.virtual).map(mapper);
         let virtualCartItems = event.detail.filter(item => item.virtual).map(mapper);
         let bundleCartItems = event.detail.filter(item => item.bundle).map(bundleMapper);
+        let parentSkuEl = document.getElementById('parentSku');
+        let configurableCartItem = null;
+
+        // TODO create mapper?
+        if (parentSkuEl) {
+            let parentSku = parentSkuEl.getAttribute('data-parent-sku');
+            if (physicalCartItems.length > 0) {
+                configurableCartItem = {
+                        detail: [
+                            {
+                                parent_sku: parentSku,
+                                data: {
+                                   quantity: physicalCartItems[0].data.quantity,
+                                   sku: physicalCartItems[0].data.sku
+                                }
+                            }
+                        ],
+                        configurableOptions: event.detail[0].configurableOptions
+
+                }
+
+            }
+        }
 
         dispatch({ type: 'open' });
         dispatch({ type: 'beginLoading' });
@@ -64,6 +88,8 @@ export default ({ queries }) => {
         let addItemFn = addToCartMutation;
         if (bundleCartItems.length > 0) {
             addItemFn = addBundleItemMutation;
+        } else if (parentSkuEl && physicalCartItems.length > 0 && physicalCartItems.length < 2) {
+             addItemFn = addConfigurableItemMutation;
         } else if (physicalCartItems.length > 0 && virtualCartItems.length > 0) {
             addItemFn = addSimpleAndVirtualItemMutation;
         } else if (virtualCartItems.length > 0) {
@@ -79,7 +105,8 @@ export default ({ queries }) => {
             dispatch,
             physicalCartItems,
             virtualCartItems,
-            bundleCartItems
+            bundleCartItems,
+            configurableCartItem
         });
         dispatch({ type: 'endLoading' });
     };

@@ -17,6 +17,12 @@ query cartDetails($cartId: String!) {
                 currency
                 value
             }
+            applied_taxes {
+                label
+                amount {
+                    value
+                }
+            }
             grand_total {
                 currency
                 value
@@ -44,6 +50,9 @@ query cartDetails($cartId: String!) {
                 carrier_title
             }
             selected_shipping_method {
+                amount {
+                    value
+                }
                 carrier_code
                 carrier_title
                 method_code
@@ -92,6 +101,7 @@ query cartDetails($cartId: String!) {
             }
             product {
                 name
+                is_alcohol_product
                 sku
                 thumbnail {
                     url
@@ -108,6 +118,12 @@ query cartDetails($cartId: String!) {
                         price
                         quantity
                     }
+                }
+            }
+            ... on ConfigurableCartItem {
+                configurable_options {
+                    option_label
+                    value_label
                 }
             }
         }

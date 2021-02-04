@@ -15,6 +15,7 @@
 package com.adobe.cq.commerce.core.components.internal.models.v1.product;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -154,6 +155,33 @@ public class ProductImpl extends DataLayerComponent implements Product {
         } else {
             canonicalUrl = externalizer.publishLink(resource.getResourceResolver(), request.getRequestURI());
         }
+    }
+
+    /* Returns url if is valid */
+    public static String validateUrl(String url) {
+        try {
+            new URL(url).toURI();
+            return url;
+        }
+
+        catch (Exception e) {
+            return null;
+        }
+    }
+
+    public String getDrizlyUrl() {
+        String url = productRetriever.fetchProduct().get("external_alcohol_product_ref").toString();
+        // Take out extra quotes that are coming over
+        if (url.startsWith("\"") && url.endsWith("\"")) {
+            int length = url.length() - 1;
+            url = url.substring(1, length);
+            return validateUrl(url);
+        }
+        return validateUrl(url);
+    }
+
+    public String getAlcoholProduct() {
+        return productRetriever.fetchProduct().get("is_alcohol_product").toString();
     }
 
     @Override

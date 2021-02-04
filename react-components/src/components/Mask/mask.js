@@ -21,7 +21,11 @@ const Mask = ({ onClickHandler, isOpen, customClasses }) => {
     const classes = mergeClasses(defaultClasses, customClasses);
     const className = isOpen ? classes.root_active : classes.root;
 
-    return <button data-role="mask" className={className} onClick={onClickHandler} />;
+    return (
+        <button data-role="mask" className={className} onClick={onClickHandler}>
+            <span className='sr-only'>Close mini cart</span>
+        </button>
+    );
 };
 
 Mask.propTypes = {

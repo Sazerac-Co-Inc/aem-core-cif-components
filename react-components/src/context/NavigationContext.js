@@ -26,6 +26,7 @@ const ancestors = {
     MY_ACCOUNT: 'MENU',
     CHANGE_PASSWORD: 'MY_ACCOUNT',
     SIGN_IN: 'MENU',
+    ORDER_HISTORY: 'MY_ACCOUNT',
     MENU: null
 };
 
@@ -60,6 +61,8 @@ const NavigationContextProvider = props => {
     const showMenu = () => NavigationActions.showMenu({ dispatch });
 
     const showMyAccount = () => NavigationActions.showMyAccount({ dispatch, t });
+
+    const showOrderHistory = () => NavigationActions.showOrderHistory({ dispatch, t });
 
     const showChangePassword = () => NavigationActions.showChangePassword({ dispatch, t });
 
@@ -101,6 +104,7 @@ const NavigationContextProvider = props => {
             showSignIn,
             showMenu,
             showMyAccount,
+            showOrderHistory,
             showChangePassword,
             showForgotPassword,
             showCreateAccount,

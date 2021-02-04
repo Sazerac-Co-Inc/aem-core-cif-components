@@ -89,3 +89,8 @@
     opacity: 0.5;
     z-index: 2;
 }
+
+.attributes {
+    list-style: none;
+    padding: 0;
+}

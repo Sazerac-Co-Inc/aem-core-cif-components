@@ -27,6 +27,7 @@ import {
 import MUTATION_DELETE_CUSTOMER_ADDRESS from '../queries/mutation_delete_customer_address.graphql';
 import MUTATION_REVOKE_TOKEN from '../queries/mutation_revoke_customer_token.graphql';
 import QUERY_CUSTOMER_DETAILS from '../queries/query_customer_details.graphql';
+import QUERY_CUSTOMER_ORDERS from '../queries/query_customer_orders.graphql';
 
 const UserContext = React.createContext();
 
@@ -39,6 +40,9 @@ const reducerFactory = () => {
                     inProgress: false,
                     currentUser: {
                         ...action.userDetails
+                    },
+                    customerOrders: {
+                        ...action.userOrders
                     }
                 };
             case 'setCartId':
@@ -183,6 +187,9 @@ const reducerFactory = () => {
                         email: '',
                         addresses: []
                     },
+                    customerOrders: {
+                        items: ''
+                    },
                     cartId: '',
                     accountDropdownView: null
                 };
@@ -223,7 +230,18 @@ const UserContextProvider = props => {
             firstname: '',
             lastname: '',
             email: '',
-            addresses: []
+            addresses: [],
+            customerOrders: {
+                items: [
+                    {
+                         order_number: '',
+                         id: '',
+                         created_at: '',
+                         grand_total: '',
+                         status: ''
+                    }
+                 ]
+            }
         },
         token: userCookie,
         isSignedIn: isSignedIn(),
@@ -236,6 +254,8 @@ const UserContextProvider = props => {
         deleteAddressError: null,
         signInError: null,
         inProgress: false,
+        hasOrders: false,
+        needsOrders: false,
         createAccountError: null,
         createAccountEmail: null,
         cartId: null,
@@ -247,6 +267,7 @@ const UserContextProvider = props => {
     const [deleteCustomerAddress] = useMutation(MUTATION_DELETE_CUSTOMER_ADDRESS);
     const [revokeCustomerToken] = useMutation(MUTATION_REVOKE_TOKEN);
     const fetchCustomerDetails = useAwaitQuery(QUERY_CUSTOMER_DETAILS);
+    const fetchCustomerOrders = useAwaitQuery(QUERY_CUSTOMER_ORDERS);
 
     const setToken = token => {
         setUserCookie(token);
@@ -272,7 +293,8 @@ const UserContextProvider = props => {
     const getUserDetails = useCallback(async () => {
         try {
             const { data: customerData } = await fetchCustomerDetails({ fetchPolicy: 'no-cache' });
-            dispatch({ type: 'setUserDetails', userDetails: customerData.customer });
+             const { data: orderData } = await fetchCustomerOrders({ fetchPolicy: 'no-cache' });
+            dispatch({ type: 'setUserDetails', userDetails: customerData.customer, userOrders: orderData.customerOrders });
         } catch (error) {
             dispatch({ type: 'error', error });
         }

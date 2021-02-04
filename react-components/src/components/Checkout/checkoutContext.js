@@ -25,7 +25,10 @@ export const initialCheckoutState = {
     isEditingNewAddress: false,
     shippingMethod: null,
     paymentMethod: null,
-    braintreeToken: false
+    braintreeToken: false,
+    anetToken: document.getElementById('sp-cif-data').getAttribute("data-auth-cc"),
+    anetActive: false,
+    anetApiId: document.getElementById('sp-cif-data').getAttribute("data-auth-lk")
 };
 
 export const checkoutReducer = (state, action) => {

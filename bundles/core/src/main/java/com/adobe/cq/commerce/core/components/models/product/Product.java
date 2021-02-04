@@ -87,4 +87,10 @@ public interface Product extends Component, PageMetadata {
     Boolean loadClientPrice();
 
     AbstractProductRetriever getProductRetriever();
+
+    String getDrizlyUrl();
+
+    String getAlcoholProduct();
+
+    Asset getImage();
 }

@@ -51,6 +51,9 @@ const PaymentsForm = props => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [t] = useTranslation(['checkout', 'common']);
 
+    const [{ anetToken, anetApiId }, dispatch] = useCheckoutState();
+    const formState = useFormState();
+
     const anchorRef = useRef(null);
 
     const paymentMethodsItems = paymentMethods.map(item => {
@@ -109,6 +112,12 @@ const PaymentsForm = props => {
             submit({
                 paymentMethod: paymentMethods.find(v => v.code === formValues['payment_method']),
                 paymentNonce: formValues['payment_nonce'],
+                opaqueDataDescriptor: formValues['dataDescriptor'],
+                ccLast4: formValues['ccLast4'],
+                ccType: formValues['ccType'],
+                ccExpYear: formValues['expYear'],
+                ccExpMonth: formValues['expMonth'],
+                ccCid: formValues['cardCode'],
                 billingAddress
             });
         },
@@ -180,6 +189,134 @@ const PaymentsForm = props => {
         }
     }, [differentAddress]);
 
+     function secureData(formApi) {
+        var authData = {};
+        authData.clientKey = anetToken;
+        authData.apiLoginID = anetApiId;
+        var cardData = {};
+        cardData.cardNumber = formApi.getValue('cardNumber');
+        cardData.month = formApi.getValue('expMonth');
+        cardData.year = formApi.getValue('expYear');
+        cardData.cardCode = formApi.getValue('cardCode');
+        var secureData = {};
+        secureData.authData = authData;
+        secureData.cardData = cardData;
+
+        return secureData;
+    }
+
+    function anetData(formApi, e) {
+        if (formApi.getValue('payment_method') == "authnetcim") {
+            e.preventDefault();
+
+            submitPayment(secureData(formApi))
+                .then(response => {
+                    if (response.messages.resultCode == 'Error') {
+                        var i = 0;
+                        while (i < response.messages.message.length) {
+                            console.log(
+                                response.messages.message[i].code + ": " +
+                                response.messages.message[i].text
+                            );
+
+                            // only show the user the first error message
+                            if (i == 0) {
+                                var error = response.messages.message[i].text;
+                                console.error("Error", error);
+                                formApi.setValue('anetError', error);
+                                sendEventToDataLayer({ event: 'sazerac.cif.checkout-accept.js-error', error });
+                            }
+                            i = i + 1;
+                        }
+                        formApi.submitForm();
+                        return;
+                    }
+                    // get anet submit data
+                    formApi.setValue('payment_nonce', response.opaqueData.dataValue);
+                    formApi.setValue('dataDescriptor', response.opaqueData.dataDescriptor);
+                    let ccNumber = formApi.getValue('cardNumber');
+                    formApi.setValue('ccLast4', parseInt(ccNumber.slice(-4)));
+                    formApi.setValue('ccType', getCcType(ccNumber));
+                    formApi.submitForm();
+                    return;
+                })
+                .catch(error => {
+                    console.error(error);
+                    sendEventToDataLayer({ event: 'sazerac.cif.checkout-accept.js-error', error });
+                    formApi.validate();
+                })
+        }
+        else {
+            formApi.submitForm();
+            return;
+        }
+
+    }
+
+    function submitPayment(data) {
+        return new Promise(response => {
+            Accept.dispatchData(data, response);
+        })
+    }
+
+    function getCcType(ccNumber) {
+        // the regular expressions check for possible matches as you type, hence the OR operators based on the number of chars
+        // regexp string length {0} provided for soonest detection of beginning of the card numbers this way it could be used for BIN CODE detection also
+
+        //JCB
+        let jcb_regex = new RegExp('^(?:2131|1800|35)[0-9]{0,}$'); //2131, 1800, 35 (3528-3589)
+        // American Express
+        let amex_regex = new RegExp('^3[47][0-9]{0,}$'); //34, 37
+        // Diners Club
+        let diners_regex = new RegExp('^3(?:0[0-59]{1}|[689])[0-9]{0,}$'); //300-305, 309, 36, 38-39
+        // Visa
+        let visa_regex = new RegExp('^4[0-9]{0,}$'); //4
+        // MasterCard
+        let mastercard_regex = new RegExp('^(5[1-5]|222[1-9]|22[3-9]|2[3-6]|27[01]|2720)[0-9]{0,}$'); //2221-2720, 51-55
+        let maestro_regex = new RegExp('^(5[06789]|6)[0-9]{0,}$'); //always growing in the range: 60-69, started with / not something else, but starting 5 must be encoded as mastercard anyway
+        //Discover
+        let discover_regex = new RegExp('^(6011|65|64[4-9]|62212[6-9]|6221[3-9]|622[2-8]|6229[01]|62292[0-5])[0-9]{0,}$');
+        ////6011, 622126-622925, 644-649, 65
+
+
+        // get rid of anything but numbers
+        ccNumber = ccNumber.replace(/\D/g, '');
+
+        // checks per each, as their could be multiple hits
+        //fix: ordering matter in detection, otherwise can give false results in rare cases
+        var ccType = "unknown";
+        if (ccNumber.match(jcb_regex)) {
+            ccType = "JCB";
+        } else if (ccNumber.match(amex_regex)) {
+            ccType = "AE";
+        } else if (ccNumber.match(diners_regex)) {
+            ccType = "DN";
+        } else if (ccNumber.match(visa_regex)) {
+            ccType = "VI";
+        } else if (ccNumber.match(mastercard_regex)) {
+            ccType = "MC";
+        } else if (ccNumber.match(discover_regex)) {
+            ccType = "DI";
+        } else if (ccNumber.match(maestro_regex)) {
+            if (ccNumber[0] == '5') { //started 5 must be mastercard
+                ccType = "MC";
+            } else {
+                ccType = "MC"; //maestro is all 60-69 which is not something else, thats why this condition in the end, not in magento defaulting to MC
+            }
+        }
+
+        return ccType;
+    }
+
+    const ComponentUsingFieldApi = () => {
+        const formApi = useFormApi();
+        return (
+            <Button onClick={(e) => anetData(formApi, e)} priority="high" type="submit" disabled={isSubmitting}>
+                {t('checkout:use-payment-method', 'Use Payment Method')}
+            </Button>
+        );
+    };
+
     return (
         <Form className={classes.root} initialValues={initialFormValues} onSubmit={handleSubmit}>
             {({ formApi }) => (
@@ -231,9 +368,7 @@ const PaymentsForm = props => {
                     </div>
                     <div className={classes.footer}>
                         <Button onClick={cancel}>{t('common:cancel', 'Cancel')}</Button>
-                        <Button priority="high" type="submit" disabled={isSubmitting}>
-                            {t('checkout:use-payment-method', 'Use Payment Method')}
-                        </Button>
+                        <ComponentUsingFieldApi />
                     </div>
                 </>
             )}

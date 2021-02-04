@@ -84,10 +84,21 @@ const Overview = props => {
         });
     };
 
+    // Sagepath custom code
+    let taxTotal = 0;
+    cart.prices.applied_taxes.forEach(el => taxTotal += el.amount.value);
+    // TODO figure out what to do with shipping addresses array. May need to get selected address cost different if costs are complex?
+    // Currently getting cost of first address in array
+    let shippingTotal = 0;
+    console.log(cart);
+    if (shippingMethod && cart.shipping_addresses[0].selected_shipping_method) {
+        shippingTotal = cart.shipping_addresses[0].selected_shipping_method.amount.value;
+    }
+
     return (
         <Fragment>
             <div className={classes.body}>
-                {!cart.is_virtual && (
+                {(!cart.is_virtual && useCartShipping) && (
                     <Section
                         label={t('checkout:ship-to', 'Ship To')}
                         onClick={() => editShippingAddress(shippingAddress)}
@@ -112,7 +123,7 @@ const Overview = props => {
                     </Section>
                 )}
                 <Section label={t('checkout:total', 'TOTAL')}>
-                    <Price currencyCode={cart.prices.grand_total.currency} value={cart.prices.grand_total.value || 0} />
+                    <Price currencyCode={cart.prices.grand_total.currency} value={cart.prices.grand_total.value || 0} /> <span className="total-includes">(includes ${taxTotal} Tax, ${shippingTotal} Shipping)</span>
                     <br />
                     <span>{cart.items.length} Items</span>
                 </Section>

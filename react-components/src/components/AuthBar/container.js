@@ -15,12 +15,15 @@ import React from 'react';
 
 import AuthBar from './authBar';
 import MyAccountPanel from './myAccountPanel';
+import { sendEventToDataLayer } from '../../utils/dataLayer';
 
 import classes from './container.css';
 import useNavigationState from './useNavigationState';
 
 const Container = props => {
     const [view, api] = useNavigationState();
+    // Sagepath custom code
+    sendEventToDataLayer({ event: 'sazerac.cif.miniaccount-rendered' });
 
     const hasModal = view !== 'MENU';
     const modalClassName = hasModal ? classes.modal_open : classes.modal;

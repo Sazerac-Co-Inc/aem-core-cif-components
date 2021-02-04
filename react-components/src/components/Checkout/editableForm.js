@@ -140,6 +140,19 @@ const EditableForm = props => {
                             nonce: formValues.paymentNonce
                         }
                     });
+                case 'authnetcim': {
+                    console.log("payment form sumbit authnet");
+                    paymentResult = await setAnetPaymentMethodOnCart({
+                        variables: {
+                            cartId: cartId,
+                            paymentMethodCode: formValues.paymentMethod.code,
+                            ccLast4: formValues.ccLast4,
+                            ccType: formValues.ccType,
+                            ccExpYear: formValues.ccExpYear,
+                            ccExpMonth: formValues.ccExpMonth,
+                            ccCid: formValues.ccCid,
+                            opaqueDataDescriptor: formValues.opaqueDataDescriptor,
+                            nonce: formValues.paymentNonce
                     break;
                 }
                 default: {
@@ -221,6 +234,7 @@ const EditableForm = props => {
                     billingAddressSameAsShippingAddress={billingAddressSameAsShippingAddress}
                     cancel={handleCancel}
                     cart={cart}
+                    allowSame={!cart.is_virtual && useCartShipping}
                     countries={countries}
                     initialAddressSelectValue={billingAddressSelectInitialValue}
                     initialPaymentMethod={paymentMethod}

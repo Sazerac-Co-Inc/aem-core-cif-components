@@ -15,6 +15,7 @@ import React, { useMemo, useCallback } from 'react';
 import { number, shape, object, string } from 'prop-types';
 import { useTranslation } from 'react-i18next';
 
+import { List } from '@magento/peregrine';
 import classes from './product.css';
 
 import Price from '../Price';
@@ -36,6 +37,14 @@ const Product = props => {
     const { thumbnail, name, __typename } = product;
     const [, { removeItem, editItem }] = useProduct({ item });
 
+    function ProductAttribute(attribute) {
+        return (
+            <li className={classes.size}>
+                <span>{attribute.item.option_label}: </span><span>{attribute.item.value_label}</span>
+            </li>
+        );
+    }
+
     let { price, row_total } = prices;
 
     const productImage = useMemo(() => {
@@ -54,6 +63,16 @@ const Product = props => {
         <li className={classes.root} data-testid="cart-item">
             {productImage}
             <div className={classes.name}>{name}</div>
+            {item.configurable_options &&
+                <List
+                    className={classes.attributes}
+                    render="ul"
+                    items={item.configurable_options}
+                    getItemKey={item => item.attribute_code}
+                    renderItem={itemProps => {
+                        return <ProductAttribute item={itemProps.item} />;
+                    }}></List>
+            }
             {__typename === 'BundleProduct' && (
                 <div className={classes.bundleOptions}>
                     {bundle_options.map(o => (
