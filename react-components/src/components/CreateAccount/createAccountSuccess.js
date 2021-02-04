@@ -18,18 +18,16 @@ import { useTranslation, Trans } from 'react-i18next';
 import Trigger from '../Trigger';
 import { useUserContext } from '../../context/UserContext';
 import classes from './createAccountSuccess.css';
-import { useEffect } from 'react';
 
 const CreateAccountSuccess = props => {
     const [t] = useTranslation('account');
     const { showSignIn } = props;
     const [{ createAccountEmail }, { dispatch }] = useUserContext();
 
-    useEffect(() => {
-        return () => {
-            dispatch({ type: 'cleanupAccountCreated' });
-        };
-    });
+    const handleSignIn = () => {
+        dispatch({ type: 'cleanupAccountCreated' });
+        showSignIn();
+    };
 
     return (
         <div className={classes.root}>
@@ -40,11 +38,11 @@ const CreateAccountSuccess = props => {
                 <div className={classes.textBlock}>
                     {/* prettier-ignore */}
                     <Trans i18nKey="account:email-confirmation-info">
-                        Please click 'SIGN IN' below and log in with <b>{{ email: createAccountEmail }}</b>.
+                        You will receive a link at <b>{{ email: createAccountEmail }}</b>. Access that link to confirm your email address.
                     </Trans>
                 </div>
                 <div className={classes.actions}>
-                    <Trigger action={showSignIn}>
+                    <Trigger action={handleSignIn}>
                         <span className={classes.signin}>{t('account:sign-in', 'Sign In')}</span>
                     </Trigger>
                 </div>

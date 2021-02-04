@@ -12,7 +12,6 @@
  *
  ******************************************************************************/
 import parseError from '../../utils/parseError';
-import { sendEventToDataLayer } from '../../utils/dataLayer';
 
 /**
  * Adds an item to the cart. If the cart doesn't exist then it's created
@@ -34,7 +33,7 @@ export const addItemToCart = async payload => {
         dispatch,
         physicalCartItems,
         virtualCartItems,
-        configurableCartItem
+        bundleCartItems
     } = payload;
 
     try {
@@ -45,19 +44,15 @@ export const addItemToCart = async payload => {
         }
 
         let variables = { cartId, cartItems: physicalCartItems };
-        let configurableOptions = null;
-        if (configurableCartItem && configurableCartItem) {
-            variables = { cartId, cartItems: configurableCartItem.detail };
-            configurableOptions = configurableCartItem.configurableOptions;
-        } else if (physicalCartItems.length > 0 && virtualCartItems.length > 0 && configurableCartItem.length < 1) {
+        if (bundleCartItems.length > 0) {
+            variables = { cartId, cartItems: bundleCartItems };
+        } else if (physicalCartItems.length > 0 && virtualCartItems.length > 0) {
             variables = { cartId, virtualCartItems, simpleCartItems: physicalCartItems };
-        } else if (virtualCartItems.length > 0 && configurableCartItem.length < 1) {
+        } else if (virtualCartItems.length > 0) {
             variables = { cartId, cartItems: virtualCartItems };
         }
 
         await addToCartMutation({ variables });
-        sendEventToDataLayer({ event: 'sazerac.cif.cart-add-item', variables, configurableOptions });
-
         dispatch({ type: 'cartId', cartId });
         await getCartDetails({ cartDetailsQuery, cartId, dispatch });
     } catch (error) {
@@ -83,34 +78,12 @@ export const getCartDetails = async payload => {
         if (error) {
             throw new Error(error);
         }
-        sendEventToDataLayer({ event: 'sazerac.cif.cart-details', cart: data.cart });
 
-        if (data.cart.items) {
-            let inStoreOnly = checkInStoreOnly(data.cart.items);
-            dispatch({ type: inStoreOnly ? 'inStoreOnly' : 'useShipping', useCartShipping: inStoreOnly });
-        }
         dispatch({ type: 'cart', cart: data.cart });
     } catch (error) {
         dispatch({ type: 'error', error: error.toString() });
     }
 };
-
-/**
- * 
- * Sagepath Custom -   
- */
-function checkInStoreOnly(items) {
-    let inStoreOnly = false;
-    for (let i = 0; i < items.length; i++) {
-        if (!items[i].product.is_alcohol_product) {
-            inStoreOnly = false;
-            return inStoreOnly;
-        } else if (items[i].product.is_alcohol_product) {
-            inStoreOnly = true;
-        }
-    }
-    return inStoreOnly;
-}
 
 /**
  * Removes an item from the cart
@@ -124,7 +97,6 @@ function checkInStoreOnly(items) {
  */
 export const removeItemFromCart = async payload => {
     const { cartDetailsQuery, removeItemMutation, cartId, itemId, dispatch } = payload;
-    sendEventToDataLayer({ event: 'sazerac.cif.cart-removal', cartId: cartId, itemId: itemId });
 
     try {
         await removeItemMutation({
@@ -151,7 +123,6 @@ export const removeCoupon = async payload => {
 
     try {
         await removeCouponMutation({ variables: { cartId, couponCode } });
-        sendEventToDataLayer({ event: 'sazerac.cif.remove-coupon', cartId: cartId, couponCode: couponCode });
     } catch (error) {
         dispatch({ type: 'couponError', error: parseError(error) });
     }
@@ -174,10 +145,8 @@ export const addCoupon = async payload => {
 
     try {
         await addCouponMutation({ variables: { cartId, couponCode } });
-        sendEventToDataLayer({ event: 'sazerac.cif.add-coupon', cartId: cartId, couponCode: couponCode });
     } catch (error) {
         dispatch({ type: 'couponError', error: parseError(error) });
-        sendEventToDataLayer({ event: 'sazerac.cif.add-coupon-error', error, couponCode });
     }
 
     await getCartDetails({ cartDetailsQuery, dispatch, cartId });
@@ -215,9 +184,7 @@ export const updateCartItem = async payload => {
         await updateCartItemMutation({
             variables: { cartId, cartItemId, quantity: itemQuantity }
         });
-        sendEventToDataLayer({ event: 'sazerac.cif.update-cart', cartId: cartId, cartItemId: cartItemId, quantity: itemQuantity });
         await getCartDetails({ cartDetailsQuery, dispatch, cartId });
-
     } catch (error) {
         dispatch({ type: 'error', error: parseError(error) });
     }

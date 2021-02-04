@@ -14,7 +14,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMutation } from '@apollo/react-hooks';
+import { useMutation } from '@apollo/client';
 
 import { useAwaitQuery } from '../../utils/hooks';
 
@@ -55,24 +55,6 @@ const CartOptions = () => {
         },
         {
             value: '4'
-        },
-        {
-            value: '5'
-        },
-        {
-            value: '6'
-        },
-        {
-            value: '7'
-        },
-        {
-            value: '8'
-        },
-        {
-            value: '9'
-        },
-        {
-            value: '10'
         }
     ];
 

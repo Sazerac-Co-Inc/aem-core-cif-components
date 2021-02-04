@@ -25,8 +25,7 @@ export const initialState = {
     cartId: null,
     cart: null,
     errorMessage: null,
-    couponError: null,
-    useCartShipping: true
+    couponError: null
 };
 
 export const reducerFactory = setCartCookie => {
@@ -93,10 +92,9 @@ export const reducerFactory = setCartCookie => {
             }
             case 'error':
                 console.error(action.error);
-                let cleanError = action.error.replace('GraphQL error: ', '');
                 return {
                     ...state,
-                    errorMessage: cleanError
+                    errorMessage: action.error
                 };
             case 'discardError':
                 return {
@@ -108,16 +106,7 @@ export const reducerFactory = setCartCookie => {
                     ...state,
                     couponError: action.error
                 };
-            case 'inStoreOnly':
-                return {
-                    ...state,
-                    useCartShipping: false
-                };
-            case 'useShipping':
-                return {
-                    ...state,
-                    useCartShipping: true
-                };
+
             default:
                 return state;
         }

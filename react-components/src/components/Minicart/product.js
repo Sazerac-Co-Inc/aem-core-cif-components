@@ -14,7 +14,7 @@
 import React, { useMemo, useCallback } from 'react';
 import { number, shape, object, string } from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { List } from '@magento/peregrine';
+
 import classes from './product.css';
 
 import Price from '../Price';
@@ -32,17 +32,9 @@ const Product = props => {
     const { item } = props;
     const [t] = useTranslation('cart');
 
-    const { product = {}, quantity = 0, id = '', prices } = item;
-    const { thumbnail, name } = product;
+    const { product = {}, quantity = 0, id = '', prices, bundle_options = [] } = item;
+    const { thumbnail, name, __typename } = product;
     const [, { removeItem, editItem }] = useProduct({ item });
-
-    function ProductAttribute(attribute) {
-        return (
-            <li className={classes.size}>
-                <span>{attribute.item.option_label}: </span><span>{attribute.item.value_label}</span>
-            </li>
-        );
-    }
 
     let { price, row_total } = prices;
 
@@ -62,28 +54,29 @@ const Product = props => {
         <li className={classes.root} data-testid="cart-item">
             {productImage}
             <div className={classes.name}>{name}</div>
-            {item.configurable_options &&
-                <List
-                    className={classes.attributes}
-                    render="ul"
-                    items={item.configurable_options}
-                    getItemKey={item => item.attribute_code}
-                    renderItem={itemProps => {
-                        return <ProductAttribute item={itemProps.item} />;
-                    }}></List>
-            }
+            {__typename === 'BundleProduct' && (
+                <div className={classes.bundleOptions}>
+                    {bundle_options.map(o => (
+                        <div key={`${o.id}`}>
+                            <p className={classes.bundleOptionTitle}>{o.label}:</p>
+                            {o.values.map(v => (
+                                <p key={`${o.id}-${v.id}`} className={classes.bundleOptionValue}>
+                                    {`${v.quantity} x ${v.label} `}
+                                    <Price currencyCode={price.currency} value={v.price} />
+                                </p>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            )}
             <div className={classes.quantity}>
                 <div className={classes.quantityRow}>
                     <span>{quantity}</span>
                     <span className={classes.quantityOperator}>{'×'}</span>
-                    <span className={classes.price}>
-                        <Price currencyCode={price.currency} value={price.value} />
-                    </span>
+                    <Price className={classes.price} currencyCode={price.currency} value={price.value} />
                 </div>
                 <div className={classes.rowTotalRow}>
-                    <span className={classes.rowTotal}>
-                        <Price currencyCode={row_total.currency} value={row_total.value} />
-                    </span>
+                    <Price className={classes.rowTotal} currencyCode={row_total.currency} value={row_total.value} />
                 </div>
             </div>
             <Kebab>

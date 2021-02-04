@@ -6,11 +6,11 @@
 
 # AEM CIF Core Components
 
-This is a customized version of the AEM CIF Core Components for Graphql and Magento integration with Sagepath's Sazerac AEM projects. The AEM CIF Core Components project serves as accelerator to get started with projects using AEM, CIF and Magento. The project contains re-useable Commerce core components which combine server-side rendered AEM components with client-side React commerce components (MPA) for dynamic experiences / data. The components use the [Venia](https://github.com/magento-research/pwa-studio/tree/develop/packages/venia-concept) theme<sup id="a1">[1](#f1)</sup>.
+The AEM CIF Core Components project serves as accelerator to get started with projects using AEM, CIF and Magento. The project contains re-useable Commerce core components which combine server-side rendered AEM components with client-side React commerce components (MPA) for dynamic experiences / data. The components use the [Venia](https://github.com/magento-research/pwa-studio/tree/develop/packages/venia-concept) theme<sup id="a1">[1](#f1)</sup>.
 
 This project is intended to be used in conjunction with the [AEM Sites Core Components](https://github.com/adobe/aem-core-wcm-components). AEM CIF Core Components use the AEM Sites Core Components as a foundation where possible and extending them.
 
-For starting a new project please have a look at our [CIF archetype](https://github.com/adobe/aem-cif-project-archetype) project. There you will also find a complete sample project that uses the WCM and CIF core components to deliver a stunning store-front experience.
+For starting a new project please have a look at our [archetype](https://github.com/adobe/aem-project-archetype) project. Also have a look at our [Venia sample project](https://github.com/adobe/aem-cif-guides-venia) that uses the WCM and CIF core components to deliver a stunning store-front experience.
 
 ## Documentation
 
@@ -24,6 +24,7 @@ See our [wiki](https://github.com/adobe/aem-core-cif-components/wiki) for usage 
 -   [Product Carousel](ui.apps/src/main/content/jcr_root/apps/core/cif/components/commerce/productcarousel/v1/productcarousel)
 -   [Related Products](ui.apps/src/main/content/jcr_root/apps/core/cif/components/commerce/relatedproducts/v1/relatedproducts)
 -   [Navigation](ui.apps/src/main/content/jcr_root/apps/core/cif/components/structure/navigation/v1/navigation)
+-   [Breadcrumb](ui.apps/src/main/content/jcr_root/apps/core/cif/components/structure/breadcrumb/v1/breadcrumb)
 -   [Search Results](ui.apps/src/main/content/jcr_root/apps/core/cif/components/commerce/searchresults/v1/searchresults)
 -   [Searchbar](ui.apps/src/main/content/jcr_root/apps/core/cif/components/commerce/searchbar/v1/searchbar)
 -   [Shopping Cart](ui.apps/src/main/content/jcr_root/apps/core/cif/components/commerce/minicart/v1/minicart)
@@ -31,20 +32,25 @@ See our [wiki](https://github.com/adobe/aem-core-cif-components/wiki) for usage 
 -   [Commerce Teaser](ui.apps/src/main/content/jcr_root/apps/core/cif/components/content/teaser/v1/teaser)
 -   [Sign In](react-components/src/components/SignIn)
 -   [Create Account](react-components/src/components/CreateAccount)
+-   [AccountDetails](ui.apps/src/main/content/jcr_root/apps/core/cif/components/commerce/accountdetails/v1/accountdetails)
+-   [AddressBook](ui.apps/src/main/content/jcr_root/apps/core/cif/components/commerce/addressbook/v1/addressbook)
+-   [ResetPassword](ui.apps/src/main/content/jcr_root/apps/core/cif/components/commerce/resetpassword/v1/resetpassword)
+-   [Category Carousel](ui.apps/src/main/content/jcr_root/apps/core/cif/components/commerce/categorycarousel/v1/categorycarousel)
+-   [Commerce Experience Fragment](ui.apps/src/main/content/jcr_root/apps/core/cif/components/commerce/experiencefragment/v1/experiencefragment)
 
 ## System Requirements
 
 The latest version of the AEM CIF Core Components, require the below minimum system requirements:
 
-| CIF Core Components | AEM 6.4 | AEM 6.5 | Magento                    | Java |
-| ------------------- | ------- | ------- | -------------------------- | ---- |
-| 1.1.0               | 6.4.4.0 | 6.5.0   | 2.3.4 / 2.3.5              | 1.8  |
+| CIF Core Components | AEM as a Cloud Service | AEM 6.5 | AEM 6.4 | Magento | Java  |
+| ------------------- | ---------------------- | ------- | ------- | ------- | ----- |
+| 1.6.0               | Continual              | 6.5.7   | 6.4.4.0 | 2.4.0   | 8, 11 |
 
 For a list of requirements for previous versions, see [Historical System Requirements](VERSIONS.md).
 
 ### AEM Commerce connector for Magento
 
-This project uses the [AEM Commerce connector for Magento](https://github.com/adobe/commerce-cif-connector) to improve the authoring experience by leveraging the product pickers, product assets view and consoles provided by the connector package. The AEM Commerce connector must be installed separately as part of the customer project.
+For AEM on-prem installations, this project requires the [AEM Commerce connector for Magento](https://github.com/adobe/commerce-cif-connector) to improve the authoring experience by leveraging the product pickers, product assets view and consoles provided by the connector package. The AEM Commerce connector must be installed separately as part of the customer project.
 
 ### AEM Sites Core Components
 
@@ -58,34 +64,9 @@ Starting with 2.3.2, Magento supports cache-able GraphQL requests and starting w
 
 ## Installation
 
-1. Set up an AEM environment:
-    - Have java jdk 8, Maven, Node, and NPM installed
-    - Have a copy of the AEM jar and license.properties file together in a folder
-    - Run the cq-author-p4502.jar by double clicking or with the following command:
-    ```bash
-    java -jar cq-author.p4502.jar
-    ```
-    - Add the adobe-public profile to your Maven settings ~/.m2/settings.xml https://repo.adobe.com/
-    - Run the following command and check the active profiles for adobe-public:
-    ```bash
-    mvn help:effective-settings
-    ```
-2. Upload then install aem-service-pkg-6.5.5.zip in the package manager. http://localhost:4502/crx/packmgr/
-3. Upload then install cif-connector 1.1.0 in the package manager. https://repo.maven.apache.org/maven2/com/adobe/commerce/cif/cif-connector-all/
-4. Upload then install ACS AEM Commons 4.7.2 in the package manager. https://github.com/Adobe-Consulting-Services/acs-aem-commons/releases/tag/acs-aem-commons-4.7.2
-5. Clone aem-core-cif-components dev branch:
-   ```bash
-   git clone -b dev https://github.com/Sazerac-Co-Inc/aem-core-cif-components.git
-   ```
-6. (Optional) If you encounter long filenames error, run the following to make git compatible with long filenames present in the repos:
-   ```bash
-   git config --system core.longpaths true
-   ```
-7. (Temporary) Install cif components:
-   ```bash
-   cd aem-core-cif-components
-   mvn clean install -PautoInstallAll
-   ```
+1. Clone this repository.
+2. Run a `mvn clean install` in the root folder to install the artifacts to your local Maven repository.
+3. Switch to the `all` project and run a `mvn clean install content-package:install`.
 
 Here is a full [video walk-through of the setup process](https://www.adobe.io/apis/experiencecloud/commerce-integration-framework/getting-started.html).
 
@@ -96,10 +77,12 @@ If you want to build all the modules yourself and get all the latest (yet) **unr
 ```
 mvn clean install -PautoInstallAll
 ```
+
 This installs everything by default to `localhost:4502` without any context path. You can also configure the install location with the following maven properties:
-* `aem.host`: the name of the AEM instance
-* `aem.port`: the port number of the AEM instance
-* `aem.contextPath`: the context path of your AEM instance (if not `/`)
+
+-   `aem.host`: the name of the AEM instance
+-   `aem.port`: the port number of the AEM instance
+-   `aem.contextPath`: the context path of your AEM instance (if not `/`)
 
 ### UberJar
 

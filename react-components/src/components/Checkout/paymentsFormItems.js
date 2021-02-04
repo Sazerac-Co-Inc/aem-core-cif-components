@@ -21,7 +21,7 @@ import Button from '../Button';
 import Checkbox from '../Checkbox';
 import Field from '../Field';
 import TextInput from '../TextInput';
-import { isRequired, hasLengthExactly, validatePhoneUS, validateZip, validateRegionCode, validateEmail } from '../../util/formValidators';
+import { isRequired, hasLengthExactly, validateRegionCode, validateEmail } from '../../util/formValidators';
 import combine from '../../util/combineValidators';
 
 /**
@@ -82,12 +82,12 @@ const PaymentsFormItems = props => {
             </div>
             <div className={classes.postcode}>
                 <Field label={t('checkout:address-postcode', 'ZIP')}>
-                    <TextInput id={classes.postcode} field="postcode" validate={combine([isRequired, validateZip])} />
+                    <TextInput id={classes.postcode} field="postcode" validate={isRequired} />
                 </Field>
             </div>
             <div className={classes.telephone}>
                 <Field label={t('checkout:address-phone', 'Phone')}>
-                    <TextInput id={classes.telephone} field="telephone" validate={combine([isRequired, validatePhoneUS])} />
+                    <TextInput id={classes.telephone} field="telephone" validate={isRequired} />
                 </Field>
             </div>
             <span ref={anchorRef} />
@@ -104,7 +104,6 @@ const PaymentsFormItems = props => {
     // comments for more info.
     const handleSuccess = useCallback(
         value => {
-            console.log("handleSuccess");
             setIsSubmitting(false);
             const sameAsShippingAddress = formState.values['addresses_same'];
             let billingAddress;
@@ -115,7 +114,7 @@ const PaymentsFormItems = props => {
                     firstname: formState.values['firstname'],
                     lastname: formState.values['lastname'],
                     postcode: formState.values['postcode'],
-                    region_code: formState.values['region_code'].toUpperCase(),
+                    region_code: formState.values['region_code'],
                     street: formState.values['street'],
                     telephone: formState.values['telephone']
                 };

@@ -11,16 +11,14 @@
  *    governing permissions and limitations under the License.
  *
  ******************************************************************************/
-import { useMutation } from '@apollo/react-hooks';
+import { useMutation } from '@apollo/client';
 import { useUserContext } from '../../context/UserContext';
-import { useNavigationContext } from '../../context/NavigationContext';
-import { sendEventToDataLayer } from '../../utils/dataLayer';
 
 import MUTATION_CREATE_CUSTOMER from '../../queries/mutation_create_customer.graphql';
 
-export default () => {
+export default props => {
+    const { showAccountCreated } = props;
     const [{ isSignedIn, createAccountError, inProgress }, { dispatch }] = useUserContext();
-    const [, { showAccountCreated }] = useNavigationContext();
 
     const [createCustomer] = useMutation(MUTATION_CREATE_CUSTOMER);
 
@@ -34,13 +32,11 @@ export default () => {
             await createCustomer({
                 variables: { email, password, firstname, lastname }
             });
+
             dispatch({ type: 'postCreateAccount', accountEmail: email });
             showAccountCreated();
-            sendEventToDataLayer({ event: 'sazerac.cif.create-account' });
-
         } catch (error) {
             dispatch({ type: 'createAccountError', error });
-            sendEventToDataLayer({ event: 'sazerac.cif.create-account-error', error: error });
         }
     };
 

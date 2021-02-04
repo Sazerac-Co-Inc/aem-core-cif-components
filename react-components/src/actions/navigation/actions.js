@@ -12,8 +12,6 @@
  *
  ******************************************************************************/
 
-import { sendEventToDataLayer } from '../../utils/dataLayer';
-
 /*
   Views:
       SIGNIN - the signing modal is open
@@ -46,9 +44,6 @@ const stepTitles = {
     CHANGE_PASSWORD: t => t('account:change-password', 'Change Password'),
     MY_ACCOUNT: t => t('account:my-account', 'My account'),
     ACCOUNT_CREATED: t => t('account:account-created', 'Account created'),
-    UPDATE_BILLING_ADDRESS: t => t('account:change-billing-address', 'Change Billing Address'),
-    UPDATE_SHIPPING_ADDRESS: t => t('account:change-shipping-address', 'Change Shipping Address'),
-    ORDER_HISTORY: t => t('account:see-your-orders', 'See your orders'),
     SIGN_IN: t => t('account:sign-in', 'Sign In')
 };
 
@@ -57,39 +52,15 @@ export const showSignIn = ({ dispatch, t }) => {
     dispatchEvent(startAccMgEvent);
     dispatchEvent(new CustomEvent('aem.accmg.step', { detail: { title: stepTitles[view](t) } }));
     dispatch({ type: 'changeView', view });
-    sendEventToDataLayer({ event: 'sazerac.cif.show-sign-in' });
 };
 
-export const showMenu = ({ dispatch, t }) => {
+export const showMenu = ({ dispatch }) => {
     dispatch({ type: 'changeView', view: 'MENU' });
     dispatchEvent(exitAccMgEvent);
-    sendEventToDataLayer({ event: 'sazerac.cif.show-menu-event' });
 };
 
 export const showMyAccount = ({ dispatch, t }) => {
     const view = 'MY_ACCOUNT';
-    dispatchEvent(startAccMgEvent);
-    dispatchEvent(new CustomEvent('aem.accmg.step', { detail: { title: stepTitles[view](t) } }));
-    dispatch({ type: 'changeView', view });
-    sendEventToDataLayer({ event: 'sazerac.cif.show-my-account' });
-};
-
-export const showUpdateCustomerBillingAddress = ({ dispatch, t }) => {
-    const view = 'UPDATE_BILLING_ADDRESS';
-    dispatchEvent(startAccMgEvent);
-    dispatchEvent(new CustomEvent('aem.accmg.step', { detail: { title: stepTitles[view](t) } }));
-    dispatch({ type: 'changeView', view });
-};
-
-export const showUpdateCustomerShippingAddress = ({ dispatch, t }) => {
-    const view = 'UPDATE_SHIPPING_ADDRESS';
-    dispatchEvent(startAccMgEvent);
-    dispatchEvent(new CustomEvent('aem.accmg.step', { detail: { title: stepTitles[view](t) } }));
-    dispatch({ type: 'changeView', view });
-};
-
-export const showOrderHistory = ({ dispatch, t }) => {
-    const view = 'ORDER_HISTORY';
     dispatchEvent(startAccMgEvent);
     dispatchEvent(new CustomEvent('aem.accmg.step', { detail: { title: stepTitles[view](t) } }));
     dispatch({ type: 'changeView', view });
@@ -118,4 +89,12 @@ export const showAccountCreated = ({ dispatch, t }) => {
     const view = 'ACCOUNT_CREATED';
     dispatchEvent(new CustomEvent('aem.accmg.step', { detail: { title: stepTitles[view](t) } }));
     dispatch({ type: 'changeView', view });
+};
+
+export const showView = ({ dispatch, t, view }) => {
+    const title = stepTitles[view];
+    if (title) {
+        dispatchEvent(new CustomEvent('aem.accmg.step', { detail: { title: title(t) } }));
+        dispatch({ type: 'changeView', view });
+    }
 };

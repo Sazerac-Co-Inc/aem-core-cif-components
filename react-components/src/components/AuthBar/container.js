@@ -12,35 +12,31 @@
  *
  ******************************************************************************/
 import React from 'react';
-import ReactDOM from 'react-dom';
 
 import AuthBar from './authBar';
-import AuthModal from '../AuthModal';
-import { sendEventToDataLayer } from '../../utils/dataLayer';
-import { useNavigationContext } from '../../context/NavigationContext';
+import MyAccountPanel from './myAccountPanel';
 
 import classes from './container.css';
+import useNavigationState from './useNavigationState';
 
-const Container = () => {
-    const container = document.querySelector('#miniaccount');
-    sendEventToDataLayer({ event: 'sazerac.cif.miniaccount-rendered' });
-    const [{ view }] = useNavigationContext();
+const Container = props => {
+    const [view, api] = useNavigationState();
 
     const hasModal = view !== 'MENU';
     const modalClassName = hasModal ? classes.modal_open : classes.modal;
-
-    return ReactDOM.createPortal(
+    return (
         <>
             <div className="navigation__footer">
-                <AuthBar />
+                <AuthBar showSignIn={api.showSignIn} showMyAccount={api.showMyAccount} />
             </div>
             {view !== null && (
                 <div className={modalClassName}>
-                    <AuthModal />
+                    <MyAccountPanel view={view} api={api}>
+                        {props.children}
+                    </MyAccountPanel>
                 </div>
             )}
-        </>,
-        container
+        </>
     );
 };
 

@@ -1,50 +1,44 @@
-mutation (
-    $city: String!
-    $company: String
-    $country_code: CountryCodeEnum
-    $firstname: String!
-    $lastname: String!
-    $postcode: String
-    $region: String!
-    $region_code: String!
-    $region_id: Int!
-    $street: [String]!
-    $telephone: String!
-    $default_billing: Boolean!
-    $default_shipping: Boolean!
+mutation(
+  $city: String
+  $company: String
+  $country_code: CountryCodeEnum
+  $default_billing: Boolean
+  $default_shipping: Boolean
+  $firstname: String
+  $lastname: String
+  $postcode: String
+  $region: CustomerAddressRegionInput
+  $street: [String]
+  $telephone: String
 ) {
-    createCustomerAddress(input: { 
-            city: $city
-            company: $company
-            country_code: $country_code
-            firstname: $firstname
-            lastname: $lastname
-            postcode: $postcode
-            region: {
-                region: $region
-                region_code: $region_code
-                region_id: $region_id
-            }
-            street: $street
-            telephone: $telephone
-            default_billing: $default_billing
-            default_shipping: $default_shipping
-        })  
-        {
-            id
-            city
-            company
-            country_code
-            firstname
-            lastname
-            postcode
-            region {
-                region_code
-            }
-            street
-            telephone
-            default_billing
-            default_shipping
-        }
-    
+  createCustomerAddress(
+    input: {
+      city: $city
+      company: $company
+      country_code: $country_code
+      default_billing: $default_billing
+      default_shipping: $default_shipping
+      firstname: $firstname
+      lastname: $lastname
+      postcode: $postcode
+      region: $region
+      street: $street
+      telephone: $telephone
+    }
+  ) {
+    id
+    city
+    company
+    country_code
+    default_billing
+    default_shipping
+    firstname
+    lastname
+    postcode
+    region {
+      region_code
+    }
+    street
+    telephone
+  }
 }

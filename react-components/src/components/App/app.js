@@ -11,63 +11,45 @@
  *    governing permissions and limitations under the License.
  *
  ******************************************************************************/
-
 import React from 'react';
-import { string } from 'prop-types';
-import { ApolloProvider } from '@apollo/react-hooks';
-import ApolloClient from 'apollo-boost';
+import { ApolloClient, ApolloProvider, from, HttpLink, InMemoryCache } from '@apollo/client';
 
 import { CartProvider, CartInitializer } from '../Minicart';
 import { CheckoutProvider } from '../Checkout';
 import UserContextProvider from '../../context/UserContext';
-import NavigationContextProvider from '../../context/NavigationContext';
-import { checkCookie, cookieValue } from '../../utils/cookieUtils';
-import { IntrospectionFragmentMatcher, InMemoryCache } from 'apollo-cache-inmemory';
-import introspectionQueryResultData from './fragmentTypes.json';
+import { useConfigContext } from '../../context/ConfigContext';
+import { graphqlAuthLink } from '../../utils/authUtils';
+import compressQueryFetch from '../../utils/compressQueryFetch';
 
 const App = props => {
-    const { uri, storeView = 'default' } = props;
+    const { graphqlEndpoint, storeView = 'default', graphqlMethod = 'POST' } = useConfigContext();
 
-    const fragmentMatcher = new IntrospectionFragmentMatcher({
-        introspectionQueryResultData
-    });
+    const clientConfig = {
+        link: from([
+            graphqlAuthLink,
+            new HttpLink({
+                uri: graphqlEndpoint,
+                headers: { Store: storeView },
+                useGETForQueries: graphqlMethod === 'GET',
+                fetch: compressQueryFetch
+            })
+        ]),
+        cache: new InMemoryCache()
+    };
 
-    const cache = new InMemoryCache({ fragmentMatcher });
-
-    const client = new ApolloClient({
-        uri,
-        headers: { Store: storeView },
-        cache,
-        request: operation => {
-            let token = checkCookie('cif.userToken') ? cookieValue('cif.userToken') : '';
-            if (token.length > 0) {
-                operation.setContext({
-                    headers: {
-                        authorization: `Bearer ${token && token.length > 0 ? token : ''}`
-                    }
-                });
-            }
-        }
-    });
+    const client = new ApolloClient(clientConfig);
 
     return (
         <ApolloProvider client={client}>
             <UserContextProvider>
-                <NavigationContextProvider>
-                    <CartProvider>
-                        <CartInitializer>
-                            <CheckoutProvider>{props.children}</CheckoutProvider>
-                        </CartInitializer>
-                    </CartProvider>
-                </NavigationContextProvider>
+                <CartProvider>
+                    <CartInitializer>
+                        <CheckoutProvider>{props.children}</CheckoutProvider>
+                    </CartInitializer>
+                </CartProvider>
             </UserContextProvider>
         </ApolloProvider>
     );
-};
-
-App.propTypes = {
-    uri: string.isRequired,
-    storeView: string
 };
 
 export default App;

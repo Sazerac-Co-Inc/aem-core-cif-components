@@ -21,8 +21,8 @@ export default ({ queries }) => {
         addToCartMutation,
         cartDetailsQuery,
         addVirtualItemMutation,
-        addSimpleAndVirtualItemMutation,
-        addConfigurableItemMutation
+        addBundleItemMutation,
+        addSimpleAndVirtualItemMutation
     } = queries;
 
     const [{ cartId, cart, isOpen, isLoading, isEditing, errorMessage }, dispatch] = useCartState();
@@ -38,45 +38,32 @@ export default ({ queries }) => {
         if (!event.detail) return;
 
         const mapper = item => {
+            let quantity = parseFloat(item.quantity);
             return {
                 data: {
                     sku: item.sku,
-                    quantity: item.quantity
+                    quantity
                 }
+            };
+        };
+
+        const bundleMapper = item => {
+            return {
+                ...mapper(item),
+                bundle_options: item.options
             };
         };
 
         let physicalCartItems = event.detail.filter(item => !item.virtual).map(mapper);
         let virtualCartItems = event.detail.filter(item => item.virtual).map(mapper);
-        let parentSkuEl = document.getElementById('parentSku');
-        let configurableCartItem = null;
+        let bundleCartItems = event.detail.filter(item => item.bundle).map(bundleMapper);
 
-        // TODO create mapper?
-        if (parentSkuEl) {
-            let parentSku = parentSkuEl.getAttribute('data-parent-sku');
-            if (physicalCartItems.length > 0) {
-                configurableCartItem = {
-                        detail: [
-                            {
-                                parent_sku: parentSku,
-                                data: {
-                                   quantity: physicalCartItems[0].data.quantity,
-                                   sku: physicalCartItems[0].data.sku
-                                }
-                            }
-                        ],
-                        configurableOptions: event.detail[0].configurableOptions
-
-                }
-
-            }
-        }
         dispatch({ type: 'open' });
         dispatch({ type: 'beginLoading' });
 
         let addItemFn = addToCartMutation;
-        if (parentSkuEl && physicalCartItems.length > 0 && physicalCartItems.length < 2) {
-            addItemFn = addConfigurableItemMutation;
+        if (bundleCartItems.length > 0) {
+            addItemFn = addBundleItemMutation;
         } else if (physicalCartItems.length > 0 && virtualCartItems.length > 0) {
             addItemFn = addSimpleAndVirtualItemMutation;
         } else if (virtualCartItems.length > 0) {
@@ -92,7 +79,7 @@ export default ({ queries }) => {
             dispatch,
             physicalCartItems,
             virtualCartItems,
-            configurableCartItem
+            bundleCartItems
         });
         dispatch({ type: 'endLoading' });
     };

@@ -13,6 +13,9 @@
  ******************************************************************************/
 'use strict';
 
+const dataLayerEnabled = document.body.hasAttribute('data-cmp-data-layer-enabled');
+const dataLayer = dataLayerEnabled ? (window.adobeDataLayer = window.adobeDataLayer || []) : undefined;
+
 /**
  * Add to cart button component.
  */
@@ -25,24 +28,17 @@ class AddToCart {
         let virtual = config.product.dataset.virtual !== undefined;
         let grouped = config.product.dataset.grouped !== undefined;
         let sku = !configurable ? config.product.querySelector(AddToCart.selectors.sku).innerHTML : null;
-        let alcohol = config.product.querySelector(AddToCart.selectors.alcoholCheckbox) != undefined;
 
         this._state = {
             sku,
             attributes: {},
             configurable,
             virtual,
-            grouped,
-            alcohol
+            grouped
         };
 
         // Disable add to cart if configurable product and no variant was selected
         if (this._state.configurable && !this._state.sku) {
-            this._element.disabled = true;
-        }
-
-        // Disable add to cart if alcohol product
-        if (this._state.alcohol) {
             this._element.disabled = true;
         }
 
@@ -59,27 +55,7 @@ class AddToCart {
 
         // Add click handler to add to cart button
         this._element.addEventListener('click', this._onAddToCart.bind(this));
-
-
-        // Listen to alcohol checkbox updates on product
-        config.product.addEventListener(AddToCart.events.alcoholBoxChecked, this._onAlcoholChecked.bind(this));
-
-
     }
-
-    /**
-     *  Alcohol checkbox changed event handler
-     */
-     _onAlcoholChecked(event) {
-        if (event.detail.checked) {
-            this._element.disabled = false;
-            return;
-        } else {
-            this._element.disabled = true;
-            return;
-        }
-     }
-
 
     /**
      * Variant changed event handler.
@@ -95,6 +71,7 @@ class AddToCart {
 
         // Update sku attribute in select element
         document.querySelector(AddToCart.selectors.quantity).setAttribute('data-product-sku', variant.sku);
+        document.querySelector(AddToCart.selectors.quantity).setAttribute('data-product-id', variant.id);
 
         // Update internal state
         this._state.sku = variant.sku;
@@ -117,33 +94,36 @@ class AddToCart {
         // To support grouped products where multiple products can be put in the cart in one single click,
         // the sku of each product is now read from the 'data-product-sku' attribute of each select element
 
-        const selections = Array.from(document.querySelectorAll(AddToCart.selectors.quantity));
-        let confOptions = [];
-        let attrElements = document.querySelectorAll('.option__root');
-        var i;
-        for (i = 0; i < attrElements.length; i++) {
-            let attID = attrElements[i].querySelector('.tileList__root').getAttribute('data-id');
-            let selectedOption = attrElements[i].querySelector('.tile__root_selected span').innerHTML;
-            confOptions.push([attID, selectedOption]);
-        }
-        let items = selections
-            .filter(selection => {
-                return parseInt(selection.value) > 0;
-            })
-            .map(selection => {
-                return {
-                    sku: selection.dataset.productSku,
-                    virtual: this._state.grouped ? selection.dataset.virtual !== undefined : this._state.virtual,
-                    quantity: selection.value,
-                    configurableOptions: confOptions
-                };
-            });
+        const selections = Array.from(document.querySelectorAll(AddToCart.selectors.quantity)).filter(selection => {
+            return parseInt(selection.value) > 0;
+        });
+        let items = selections.map(selection => {
+            return {
+                sku: selection.dataset.productSku,
+                virtual: this._state.grouped ? selection.dataset.virtual !== undefined : this._state.virtual,
+                quantity: selection.value
+            };
+        });
 
         if (items.length > 0 && window.CIF) {
             const customEvent = new CustomEvent(AddToCart.events.addToCart, {
-                detail: items,
+                detail: items
             });
             document.dispatchEvent(customEvent);
+
+            if (dataLayerEnabled) {
+                selections.forEach(function(selection) {
+                    // https://github.com/adobe/xdm/blob/master/docs/reference/datatypes/productlistitem.schema.md
+                    dataLayer.push({
+                        event: 'cif:addToCart',
+                        eventInfo: {
+                            '@id': selection.dataset.productId,
+                            'xdm:SKU': selection.dataset.productSku,
+                            'xdm:quantity': parseInt(selection.value)
+                        }
+                    });
+                });
+            }
         }
     }
 }
@@ -152,14 +132,12 @@ AddToCart.selectors = {
     self: '.productFullDetail__cartActions button',
     sku: '.productFullDetail__details [role=sku]',
     quantity: '.productFullDetail__quantity select',
-    product: '[data-cmp-is=product]',
-    alcoholCheckbox: '.productFullDetail__isAlcoholProduct'
+    product: '[data-cmp-is=product]'
 };
 
 AddToCart.events = {
     variantChanged: 'variantchanged',
-    addToCart: 'aem.cif.add-to-cart',
-    alcoholBoxChecked: 'sazerac.cif.is-alcohol'
+    addToCart: 'aem.cif.add-to-cart'
 };
 
 (function(document) {

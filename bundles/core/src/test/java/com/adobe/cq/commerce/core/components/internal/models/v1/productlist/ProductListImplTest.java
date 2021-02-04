@@ -29,6 +29,7 @@ import org.apache.sling.api.resource.Resource;
 import org.apache.sling.api.resource.ValueMap;
 import org.apache.sling.api.scripting.SlingBindings;
 import org.apache.sling.api.wrappers.ValueMapDecorator;
+import org.apache.sling.caconfig.ConfigurationBuilder;
 import org.apache.sling.servlethelpers.MockRequestPathInfo;
 import org.apache.sling.testing.mock.sling.ResourceResolverType;
 import org.apache.sling.xss.XSSAPI;
@@ -43,6 +44,7 @@ import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import com.adobe.cq.commerce.core.components.client.MockExternalizer;
 import com.adobe.cq.commerce.core.components.internal.services.MockUrlProviderConfiguration;
 import com.adobe.cq.commerce.core.components.internal.services.UrlProviderImpl;
 import com.adobe.cq.commerce.core.components.models.common.ProductListItem;
@@ -51,10 +53,12 @@ import com.adobe.cq.commerce.core.components.services.UrlProvider;
 import com.adobe.cq.commerce.core.components.testing.Utils;
 import com.adobe.cq.commerce.core.search.internal.services.SearchFilterServiceImpl;
 import com.adobe.cq.commerce.core.search.internal.services.SearchResultsServiceImpl;
+import com.adobe.cq.commerce.core.search.models.SearchAggregation;
 import com.adobe.cq.commerce.core.search.models.SearchResultsSet;
 import com.adobe.cq.commerce.core.search.models.Sorter;
 import com.adobe.cq.commerce.core.search.models.SorterKey;
 import com.adobe.cq.commerce.graphql.client.GraphqlClient;
+import com.adobe.cq.commerce.graphql.client.GraphqlClientConfiguration;
 import com.adobe.cq.commerce.graphql.client.GraphqlRequest;
 import com.adobe.cq.commerce.graphql.client.HttpMethod;
 import com.adobe.cq.commerce.graphql.client.impl.GraphqlClientImpl;
@@ -66,9 +70,11 @@ import com.adobe.cq.commerce.magento.graphql.Products;
 import com.adobe.cq.commerce.magento.graphql.Query;
 import com.adobe.cq.commerce.magento.graphql.gson.QueryDeserializer;
 import com.adobe.cq.sightly.SightlyWCMMode;
+import com.day.cq.commons.Externalizer;
 import com.day.cq.wcm.api.Page;
 import com.day.cq.wcm.api.designer.Style;
 import com.day.cq.wcm.scripting.WCMBindingsConstants;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import io.wcm.testing.mock.aem.junit.AemContext;
@@ -77,6 +83,7 @@ import io.wcm.testing.mock.aem.junit.AemContextCallback;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -103,6 +110,11 @@ public class ProductListImplTest {
 
                 context.registerInjectActivateService(new SearchFilterServiceImpl());
                 context.registerInjectActivateService(new SearchResultsServiceImpl());
+
+                context.registerService(Externalizer.class, new MockExternalizer());
+
+                ConfigurationBuilder mockConfigBuilder = Utils.getDataLayerConfig(true);
+                context.registerAdapter(Resource.class, ConfigurationBuilder.class, mockConfigBuilder);
             },
             ResourceResolverType.JCR_MOCK);
     }
@@ -130,10 +142,13 @@ public class ProductListImplTest {
         category = Utils.getQueryFromResource("graphql/magento-graphql-search-result-with-category.json").getCategory();
         products = Utils.getQueryFromResource("graphql/magento-graphql-search-result-with-category.json").getProducts();
 
+        GraphqlClientConfiguration graphqlClientConfiguration = mock(GraphqlClientConfiguration.class);
+        when(graphqlClientConfiguration.httpMethod()).thenReturn(HttpMethod.POST);
+
         graphqlClient = Mockito.spy(new GraphqlClientImpl());
         Whitebox.setInternalState(graphqlClient, "gson", QueryDeserializer.getGson());
         Whitebox.setInternalState(graphqlClient, "client", httpClient);
-        Whitebox.setInternalState(graphqlClient, "httpMethod", HttpMethod.POST);
+        Whitebox.setInternalState(graphqlClient, "configuration", graphqlClientConfiguration);
 
         Utils.setupHttpResponse("graphql/magento-graphql-introspection-result.json", httpClient, HttpStatus.SC_OK, "{__type");
         Utils.setupHttpResponse("graphql/magento-graphql-attributes-result.json", httpClient, HttpStatus.SC_OK, "{customAttributeMetadata");
@@ -154,6 +169,7 @@ public class ProductListImplTest {
 
         MockRequestPathInfo requestPathInfo = (MockRequestPathInfo) context.request().getRequestPathInfo();
         requestPathInfo.setSelectorString("6");
+        context.request().setServletPath(PAGE + ".6.html"); // used by context.request().getRequestURI();
 
         // This sets the page attribute injected in the models with @Inject or @ScriptVariable
         SlingBindings slingBindings = (SlingBindings) context.request().getAttribute(SlingBindings.class.getName());
@@ -178,9 +194,14 @@ public class ProductListImplTest {
     }
 
     @Test
-    public void getTitle() {
+    public void testTitleAndMetadata() {
         productListModel = context.request().adaptTo(ProductListImpl.class);
         Assert.assertEquals(category.getName(), productListModel.getTitle());
+        Assert.assertEquals(category.getUrlPath(), productListModel.getUrlPath());
+        Assert.assertEquals(category.getMetaDescription(), productListModel.getMetaDescription());
+        Assert.assertEquals(category.getMetaKeywords(), productListModel.getMetaKeywords());
+        Assert.assertEquals(category.getMetaTitle(), productListModel.getMetaTitle());
+        Assert.assertEquals("https://author" + PAGE + ".6.html", productListModel.getCanonicalUrl());
     }
 
     @Test
@@ -243,6 +264,18 @@ public class ProductListImplTest {
 
             Assert.assertEquals(productInterface instanceof GroupedProduct, item.getPriceRange().isStartPrice());
         }
+
+        SearchResultsSet searchResultsSet = productListModel.getSearchResultsSet();
+        List<SearchAggregation> searchAggregations = searchResultsSet.getSearchAggregations();
+        Assert.assertEquals(7, searchAggregations.size()); // category_id is excluded
+
+        // We want to make sure all price ranges are properly processed
+        SearchAggregation priceAggregation = searchAggregations.stream().filter(a -> a.getIdentifier().equals("price")).findFirst().get();
+        Assert.assertEquals(3, priceAggregation.getOptions().size());
+        Assert.assertEquals(3, priceAggregation.getOptionCount());
+        Assert.assertTrue(priceAggregation.getOptions().stream().anyMatch(o -> o.getDisplayLabel().equals("30-40")));
+        Assert.assertTrue(priceAggregation.getOptions().stream().anyMatch(o -> o.getDisplayLabel().equals("40-*")));
+        Assert.assertTrue(priceAggregation.getOptions().stream().anyMatch(o -> o.getDisplayLabel().equals("14")));
     }
 
     @Test
@@ -278,6 +311,27 @@ public class ProductListImplTest {
     }
 
     @Test
+    public void testMissingSelectorOnPublish() throws IOException {
+        SlingBindings slingBindings = (SlingBindings) context.request().getAttribute(SlingBindings.class.getName());
+        SightlyWCMMode wcmMode = mock(SightlyWCMMode.class);
+        when(wcmMode.isDisabled()).thenReturn(true);
+        slingBindings.put("wcmmode", wcmMode);
+
+        MockRequestPathInfo requestPathInfo = (MockRequestPathInfo) context.request().getRequestPathInfo();
+        requestPathInfo.setSelectorString(null);
+        context.request().setServletPath(PAGE + ".html"); // used by context.request().getRequestURI();
+        productListModel = context.request().adaptTo(ProductListImpl.class);
+
+        // Check that we get an empty list of products and the GraphQL client is never called
+        Assert.assertTrue(productListModel.getProducts().isEmpty());
+        Mockito.verify(graphqlClient, never()).execute(any(), any(), any());
+        Mockito.verify(graphqlClient, never()).execute(any(), any(), any(), any());
+
+        // Test canonical url on publish
+        Assert.assertEquals("https://publish" + PAGE + ".html", productListModel.getCanonicalUrl());
+    }
+
+    @Test
     public void testProductListNoGraphqlClient() throws IOException {
         SlingBindings slingBindings = (SlingBindings) context.request().getAttribute(SlingBindings.class.getName());
         slingBindings.setResource(context.resourceResolver().getResource("/content/pageB"));
@@ -288,6 +342,10 @@ public class ProductListImplTest {
         Assert.assertTrue(productListModel.getTitle().isEmpty());
         Assert.assertTrue(productListModel.getImage().isEmpty());
         Assert.assertTrue(productListModel.getProducts().isEmpty());
+        Assert.assertTrue(productListModel.getMetaTitle().isEmpty());
+        Assert.assertNull(productListModel.getMetaDescription());
+        Assert.assertNull(productListModel.getMetaKeywords());
+        Assert.assertNull(productListModel.getUrlPath());
     }
 
     @Test
@@ -322,34 +380,60 @@ public class ProductListImplTest {
 
         SorterKey currentKey = sorter.getCurrentKey();
         Assert.assertNotNull(currentKey);
-        Assert.assertEquals("position", currentKey.getName());
-        Assert.assertEquals("Position", currentKey.getLabel());
-        Assert.assertEquals(Sorter.Order.DESC, currentKey.getOrder());
+        Assert.assertEquals("price", currentKey.getName());
+        Assert.assertEquals("Price", currentKey.getLabel());
+        Assert.assertEquals(Sorter.Order.ASC, currentKey.getOrder());
         Assert.assertTrue(currentKey.isSelected());
 
         Map<String, String> currentOrderParameters = currentKey.getCurrentOrderParameters();
         Assert.assertNotNull(currentOrderParameters);
         Assert.assertEquals(resultSet.getAppliedQueryParameters().size() + 2, currentOrderParameters.size());
         resultSet.getAppliedQueryParameters().forEach((key, value) -> Assert.assertEquals(value, currentOrderParameters.get(key)));
-        Assert.assertEquals("position", currentOrderParameters.get(Sorter.PARAMETER_SORT_KEY));
-        Assert.assertEquals("desc", currentOrderParameters.get(Sorter.PARAMETER_SORT_ORDER));
+        Assert.assertEquals("price", currentOrderParameters.get(Sorter.PARAMETER_SORT_KEY));
+        Assert.assertEquals("asc", currentOrderParameters.get(Sorter.PARAMETER_SORT_ORDER));
 
         Map<String, String> oppositeOrderParameters = currentKey.getOppositeOrderParameters();
         Assert.assertNotNull(oppositeOrderParameters);
         Assert.assertEquals(resultSet.getAppliedQueryParameters().size() + 2, oppositeOrderParameters.size());
         resultSet.getAppliedQueryParameters().forEach((key, value) -> Assert.assertEquals(value, oppositeOrderParameters.get(key)));
-        Assert.assertEquals("position", oppositeOrderParameters.get(Sorter.PARAMETER_SORT_KEY));
-        Assert.assertEquals("asc", oppositeOrderParameters.get(Sorter.PARAMETER_SORT_ORDER));
+        Assert.assertEquals("price", oppositeOrderParameters.get(Sorter.PARAMETER_SORT_KEY));
+        Assert.assertEquals("desc", oppositeOrderParameters.get(Sorter.PARAMETER_SORT_ORDER));
 
         List<SorterKey> keys = sorter.getKeys();
         Assert.assertNotNull(keys);
-        Assert.assertEquals(3, keys.size());
+        Assert.assertEquals(2, keys.size());
         SorterKey defaultKey = keys.get(0);
         Assert.assertEquals(currentKey.getName(), defaultKey.getName());
 
         SorterKey otherKey = keys.get(1);
-        Assert.assertEquals("price", otherKey.getName());
-        Assert.assertEquals("Price", otherKey.getLabel());
+        Assert.assertEquals("name", otherKey.getName());
+        Assert.assertEquals("Product Name", otherKey.getLabel());
         Assert.assertEquals(Sorter.Order.ASC, otherKey.getOrder());
+    }
+
+    @Test
+    public void testClientLoadingIsDisabledOnLaunchPage() {
+        productListModel = context.request().adaptTo(ProductListImpl.class);
+        Assert.assertTrue(productListModel.loadClientPrice());
+        Page launch = context.pageManager().getPage("/content/launches/2020/09/14/mylaunch" + PAGE);
+        Whitebox.setInternalState(productListModel, "currentPage", launch);
+        Assert.assertFalse(productListModel.loadClientPrice());
+    }
+
+    @Test
+    public void testJsonRender() throws IOException {
+        productListModel = context.request().adaptTo(ProductListImpl.class);
+        ObjectMapper mapper = new ObjectMapper();
+
+        String expected = Utils.getResource("results/result-datalayer-productlist-component.json");
+        String jsonResult = productListModel.getData().getJson();
+        Assert.assertEquals(mapper.readTree(expected), mapper.readTree(jsonResult));
+
+        String itemsJsonExpected = Utils.getResource("results/result-datalayer-productlistitem-component.json");
+        String itemsJsonResult = productListModel.getProducts()
+            .stream()
+            .map(i -> i.getData().getJson())
+            .collect(Collectors.joining(",", "[", "]"));
+        Assert.assertEquals(mapper.readTree(itemsJsonExpected), mapper.readTree(itemsJsonResult));
     }
 }

@@ -11,7 +11,7 @@
  *    governing permissions and limitations under the License.
  *
  ******************************************************************************/
-import { sendEventToDataLayer } from '../../utils/dataLayer';
+
 /**
  * Re-fetches a customer cart.
  *
@@ -33,11 +33,38 @@ export const signOutUser = async ({ revokeCustomerToken, setCartCookie, setUserC
         setCartCookie('', 0);
         setUserCookie('', 0);
         dispatch({ type: 'signOut' });
-        sendEventToDataLayer({ event: 'sazerac.cif.sign-out' });
-
     } catch (error) {
         console.error('An error occurred during sign-out', error);
         dispatch({ type: 'error', error: error.toString() });
-        sendEventToDataLayer({ event: 'sazerac.cif.sign-out-error', error });
+    }
+};
+
+export const createAddress = async ({ createCustomerAddress, variables, resetFields, dispatch }) => {
+    try {
+        const { data } = await createCustomerAddress({ variables: variables });
+        dispatch({ type: 'postCreateAddress', address: data.createCustomerAddress, resetFields });
+    } catch (error) {
+        console.error('An error occurred during creating customer address', error);
+        dispatch({ type: 'setAddressFormError', error: error.toString() });
+    }
+};
+
+export const updateAddress = async ({ updateCustomerAddress, variables, resetFields, dispatch }) => {
+    try {
+        const { data } = await updateCustomerAddress({ variables: variables });
+        dispatch({ type: 'postUpdateAddress', address: data.updateCustomerAddress, resetFields });
+    } catch (error) {
+        console.error('An error occurred during updating customer address', error);
+        dispatch({ type: 'setAddressFormError', error: error.toString() });
+    }
+};
+
+export const deleteAddress = async ({ deleteCustomerAddress, address, dispatch }) => {
+    try {
+        await deleteCustomerAddress({ variables: { id: address.id } });
+        dispatch({ type: 'postDeleteAddress', address });
+    } catch (error) {
+        console.error('An error occurred during deleting customer address', error);
+        dispatch({ type: 'deleteAddressError', error: error.toString() });
     }
 };

@@ -14,7 +14,7 @@
 import React, { Fragment } from 'react';
 import { shape, string } from 'prop-types';
 
-import { Price } from '@magento/peregrine';
+import Price from '../Price';
 import { useTranslation } from 'react-i18next';
 
 import PaymentMethodSummary from './paymentMethodSummary';
@@ -24,7 +24,7 @@ import LoadingIndicator from '../LoadingIndicator';
 import Section from './section';
 import Button from '../Button';
 import useOverview from './useOverview';
-import { useCartState } from '../Minicart/cartContext';
+import * as dataLayerUtils from '../../utils/dataLayerUtils';
 
 /**
  * The Overview component renders summaries for each section of the editable
@@ -35,69 +35,86 @@ const Overview = props => {
     const [t] = useTranslation('checkout');
 
     const [
-        { shippingAddress, shippingMethod, paymentMethod, cart, inProgress },
-        { placeOrder, checkoutDispatch }
+        { billingAddress, shippingAddress, shippingMethod, paymentMethod, cart, inProgress },
+        { editShippingAddress, editBillingInformation, placeOrder, checkoutDispatch }
     ] = useOverview();
 
     const ready = (cart.is_virtual && paymentMethod) || (shippingAddress && paymentMethod && shippingMethod);
-
-    const [{ useCartShipping }] = useCartState();
-
 
     if (inProgress) {
         return <LoadingIndicator message="Placing order"></LoadingIndicator>;
     }
     const submitOrder = async () => {
-        await placeOrder(cart.id);
+        const {
+            placeOrder: {
+                order: { order_id }
+            }
+        } = await placeOrder(cart.id);
+        const {
+            prices: {
+                grand_total: { currency, value }
+            },
+            selected_payment_method: { code },
+            items
+        } = cart;
+        dataLayerUtils.pushEvent('cif:placeOrder', {
+            'xdm:purchaseOrderNumber': order_id,
+            'xdm:currencyCode': currency,
+            'xdm:priceTotal': value,
+            'xdm:payments': [
+                {
+                    'xdm:paymentAmount': value,
+                    'xdm:paymentType': code,
+                    'xdm:currencyCode': currency
+                }
+            ],
+            'xdm:products': await Promise.all(
+                items.map(async item => {
+                    const {
+                        product: { sku },
+                        quantity
+                    } = item;
+                    return {
+                        '@id': await dataLayerUtils.generateDataLayerId('product', sku),
+                        'xdm:SKU': sku,
+                        'xdm:quantity': quantity
+                    };
+                })
+            )
+        });
     };
-
-    let taxTotal = 0;
-    cart.prices.applied_taxes.forEach(el => taxTotal += el.amount.value);
-    // TODO figure out what to do with shipping addresses array. May need to get selected address cost different if costs are complex?
-    // Currently getting cost of first address in array
-    let shippingTotal = 0;
-    console.log(cart);
-    if (shippingMethod && cart.shipping_addresses[0].selected_shipping_method) {
-        shippingTotal = cart.shipping_addresses[0].selected_shipping_method.amount.value;
-    }
 
     return (
         <Fragment>
             <div className={classes.body}>
-                {(!cart.is_virtual && useCartShipping) && (
+                {!cart.is_virtual && (
                     <Section
                         label={t('checkout:ship-to', 'Ship To')}
-                        onClick={() => {
-                            checkoutDispatch({ type: 'setEditing', editing: 'address' });
-                        }}
+                        onClick={() => editShippingAddress(shippingAddress)}
                         showEditIcon={!!shippingAddress}>
                         <ShippingAddressSummary classes={classes} />
                     </Section>
                 )}
                 <Section
                     label={t('checkout:pay-with', 'Pay With')}
-                    onClick={() => {
-                        checkoutDispatch({ type: 'setEditing', editing: 'paymentMethod' });
-                    }}
+                    onClick={() => editBillingInformation(billingAddress)}
                     showEditIcon={!!paymentMethod}
-                    disabled={!cart.is_virtual && !shippingAddress && useCartShipping}>
+                    disabled={!cart.is_virtual && !shippingAddress}>
                     <PaymentMethodSummary classes={classes} />
                 </Section>
                 {!cart.is_virtual && (
                     <Section
                         label={t('checkout:use', 'Use')}
-                        onClick={() => {
-                            checkoutDispatch({ type: 'setEditing', editing: 'shippingMethod' });
-                        }}
+                        onClick={() => checkoutDispatch({ type: 'setEditing', editing: 'shippingMethod' })}
                         showEditIcon={!!shippingMethod}
                         disabled={!shippingAddress}>
                         <ShippingMethodSummary classes={classes} />
                     </Section>
                 )}
                 <Section label={t('checkout:total', 'TOTAL')}>
-                    <Price currencyCode={cart.prices.grand_total.currency} value={cart.prices.grand_total.value || 0} /> <span className="total-includes">(includes ${taxTotal} Tax, ${shippingTotal} Shipping)</span>
+                    <Price currencyCode={cart.prices.grand_total.currency} value={cart.prices.grand_total.value || 0} />
                     <br />
-                    <span>{cart.total_quantity} Items</span>
+                    <span>{cart.items.length} Items</span>
                 </Section>
             </div>
             <div className={classes.footer}>
@@ -107,7 +124,7 @@ const Overview = props => {
                 </Button>
 
                 <Button priority="high" disabled={!ready} onClick={submitOrder}>
-                    {t('checkout:confirm-order', 'Place Order')}
+                    {t('checkout:confirm-order', 'Confirm Order')}
                 </Button>
             </div>
         </Fragment>
