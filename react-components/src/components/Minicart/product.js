@@ -15,7 +15,6 @@ import React, { useMemo, useCallback } from 'react';
 import { number, shape, object, string } from 'prop-types';
 import { useTranslation } from 'react-i18next';
 
-import { List } from '@magento/peregrine';
 import classes from './product.css';
 
 import Price from '../Price';
@@ -64,14 +63,11 @@ const Product = props => {
             {productImage}
             <div className={classes.name}>{name}</div>
             {item.configurable_options &&
-                <List
-                    className={classes.attributes}
-                    render="ul"
-                    items={item.configurable_options}
-                    getItemKey={item => item.attribute_code}
-                    renderItem={itemProps => {
-                        return <ProductAttribute item={itemProps.item} />;
-                    }}></List>
+                <ul className={classes}>
+                    {item.configurable_options.map(item => (
+                        <ProductAttribute item={item} />
+                    ))}
+                </ul>
             }
             {__typename === 'BundleProduct' && (
                 <div className={classes.bundleOptions}>
