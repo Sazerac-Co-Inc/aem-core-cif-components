@@ -91,6 +91,4 @@ public interface Product extends Component, PageMetadata {
     String getDrizlyUrl();
 
     String getAlcoholProduct();
-
-    Asset getImage();
 }
