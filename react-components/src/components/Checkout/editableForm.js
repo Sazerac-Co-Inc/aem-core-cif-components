@@ -140,19 +140,23 @@ const EditableForm = props => {
                             nonce: formValues.paymentNonce
                         }
                     });
+                    break;
+                }
                 case 'authnetcim': {
                     console.log("payment form sumbit authnet");
                     paymentResult = await setAnetPaymentMethodOnCart({
                         variables: {
                             cartId: cartId,
-                            paymentMethodCode: formValues.paymentMethod.code,
-                            ccLast4: formValues.ccLast4,
-                            ccType: formValues.ccType,
-                            ccExpYear: formValues.ccExpYear,
-                            ccExpMonth: formValues.ccExpMonth,
-                            ccCid: formValues.ccCid,
-                            opaqueDataDescriptor: formValues.opaqueDataDescriptor,
-                            nonce: formValues.paymentNonce
+                            paymentMethodCode: args.paymentMethod.code,
+                            ccLast4: args.ccLast4,
+                            ccType: args.ccType,
+                            ccExpYear: args.ccExpYear,
+                            ccExpMonth: args.ccExpMonth,
+                            ccCid: args.ccCid,
+                            opaqueDataDescriptor: args.opaqueDataDescriptor,
+                            nonce: args.paymentNonce
+                        }
+                    });
                     break;
                 }
                 default: {
