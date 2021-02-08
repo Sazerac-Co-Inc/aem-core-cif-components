@@ -1,6 +1,6 @@
 {
   "name": "@dabe5651/aem-core-cif-react-components",
-  "version": "1.7.3",
+  "version": "1.7.4",
   "description": "A collection of React components used in the AEM CIF Core Components project",
   "author": "Adobe Systems Inc.",
   "license": "Apache-2.0",
@@ -55,7 +55,7 @@
   "dependencies": {
     "@apollo/client": "^3.2.4",
     "braintree-web-drop-in": "^1.22.1",
-    "graphql": "^14.6.0",
+    "graphql": "^14.7.0",
     "i18next": "^19.3.2",
     "i18next-scanner": "^2.10.3",
     "informed": "^3.9.0",
@@ -67,7 +67,7 @@
   },
   "peerDependencies": {
     "@apollo/client": "^3.2.4",
-    "graphql": "^14.6.0",
+    "graphql": "^14.7.0",
     "react": "^16.11.0",
     "react-dom": "^16.11.0"
   },
