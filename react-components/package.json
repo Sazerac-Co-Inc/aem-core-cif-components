@@ -1,12 +1,12 @@
 {
-  "name": "@adobe/aem-core-cif-react-components",
-  "version": "1.7.0",
+  "name": "@dabe5651/aem-core-cif-react-components",
+  "version": "1.7.1",
   "description": "A collection of React components used in the AEM CIF Core Components project",
   "author": "Adobe Systems Inc.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/adobe/aem-core-cif-components"
+    "url": "https://github.com/Sazerac-Co-Inc/aem-core-cif-components/tree/1.7-upgrade-conflicts"
   },
   "main": "dist/index.js",
   "files": [
