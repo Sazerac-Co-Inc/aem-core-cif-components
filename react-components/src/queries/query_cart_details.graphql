@@ -20,7 +20,7 @@ query cartDetails($cartId: String!) {
             applied_taxes {
                 label
                 amount {
-                value
+                    value
                 }
             }
             grand_total {
@@ -86,6 +86,7 @@ query cartDetails($cartId: String!) {
         }
         total_quantity
         items {
+            __typename
             id
             quantity
             prices {
@@ -101,8 +102,22 @@ query cartDetails($cartId: String!) {
             product {
                 name
                 is_alcohol_product
+                sku
                 thumbnail {
                     url
+                }
+            }
+            ... on BundleCartItem {
+                bundle_options {
+                    id
+                    label
+                    type
+                    values {
+                        id
+                        label
+                        price
+                        quantity
+                    }
                 }
             }
             ... on ConfigurableCartItem {

@@ -130,7 +130,7 @@ public class SearchResultsServiceImpl implements SearchResultsService {
         Page page = resource.getResourceResolver().adaptTo(PageManager.class).getContainingPage(resource);
 
         if (magentoGraphqlClient == null) {
-            magentoGraphqlClient = MagentoGraphqlClient.create(resource, page);
+            magentoGraphqlClient = MagentoGraphqlClient.create(resource, page, request);
         }
 
         if (magentoGraphqlClient == null) {
@@ -159,7 +159,8 @@ public class SearchResultsServiceImpl implements SearchResultsService {
         final List<ProductListItem> productListItems = extractProductsFromResponse(
             response.getData().getProducts().getItems(),
             productPage,
-            request);
+            request,
+            resource);
         final List<SearchAggregation> searchAggregations = extractSearchAggregationsFromResponse(response.getData().getProducts()
             .getAggregations(),
             searchOptions.getAllFilters(), availableFilters);
@@ -272,17 +273,22 @@ public class SearchResultsServiceImpl implements SearchResultsService {
                 } else if ("FilterRangeTypeInput".equals(filterAttributeMetadata.getFilterInputType())) {
                     FilterRangeTypeInput filter = new FilterRangeTypeInput();
                     final String[] rangeValues = value.split("_");
-
-                    // For values such as `*_60`, the from range should be left empty
-                    if (StringUtils.isNumeric(rangeValues[0])) {
+                    if (rangeValues.length == 1 && StringUtils.isNumeric(rangeValues[0])) {
+                        // The range has a single value like '60'
                         filter.setFrom(rangeValues[0]);
+                        filter.setTo(rangeValues[0]);
+                        filterInputs.addRangeTypeInput(code, filter);
+                    } else if (rangeValues.length > 1) {
+                        // For values such as '*_60', the from range should be left empty
+                        if (StringUtils.isNumeric(rangeValues[0])) {
+                            filter.setFrom(rangeValues[0]);
+                        }
+                        // For values such as '60_*', the to range should be left empty
+                        if (StringUtils.isNumeric(rangeValues[1])) {
+                            filter.setTo(rangeValues[1]);
+                        }
+                        filterInputs.addRangeTypeInput(code, filter);
                     }
-
-                    // For values such as `60_*`, the to range should be left empty
-                    if (StringUtils.isNumeric(rangeValues[1])) {
-                        filter.setTo(rangeValues[1]);
-                    }
-                    filterInputs.addRangeTypeInput(code, filter);
                 }
             });
 
@@ -360,6 +366,9 @@ public class SearchResultsServiceImpl implements SearchResultsService {
                     .minimumPrice(generatePriceQuery()))
                 .onConfigurableProduct(cp -> cp
                     .priceRange(r -> r
+                        .maximumPrice(generatePriceQuery())))
+                .onBundleProduct(bp -> bp
+                    .priceRange(r -> r
                         .maximumPrice(generatePriceQuery())));
             if (productQueryHook != null) {
                 productQueryHook.accept(q);
@@ -394,11 +403,11 @@ public class SearchResultsServiceImpl implements SearchResultsService {
      */
     @Nonnull
     private List<ProductListItem> extractProductsFromResponse(List<ProductInterface> products, Page productPage,
-        final SlingHttpServletRequest request) {
+        final SlingHttpServletRequest request, Resource resource) {
 
         LOGGER.debug("Found {} products for search term", products.size());
 
-        ProductToProductListItemConverter converter = new ProductToProductListItemConverter(productPage, request, urlProvider);
+        ProductToProductListItemConverter converter = new ProductToProductListItemConverter(productPage, request, urlProvider, resource);
 
         return products.stream()
             .map(converter)

@@ -12,21 +12,20 @@
  *
  ******************************************************************************/
 import React, { useCallback, useState, useRef, useEffect } from 'react';
-import { Form, useFormApi, useFormState } from 'informed';
-import { array, bool, shape, string, func } from 'prop-types';
+import { Form } from 'informed';
+import { array, bool, shape, string, func, number } from 'prop-types';
 import { useTranslation } from 'react-i18next';
 
+import AddressSelect from '../AddressForm/addressSelect';
 import Button from '../Button';
 import Select from '../Select';
 import Checkbox from '../Checkbox';
 import Field from '../Field';
 import TextInput from '../TextInput';
 import PaymentProvider from './paymentProviders/paymentProvider';
-import { useCheckoutState } from './checkoutContext';
 
 import classes from './paymentsForm.css';
-import { isRequired, hasLengthExactly, validateRegionCode, validatePhoneUS, validateZip, validateEmail } from '../../utils/formValidators';
-import { sendEventToDataLayer } from '../../utils/dataLayer';
+import { isRequired, hasLengthExactly, validateRegionCode, validateEmail } from '../../utils/formValidators';
 import combine from '../../utils/combineValidators';
 
 /**
@@ -34,7 +33,21 @@ import combine from '../../utils/combineValidators';
  * the submission state as well as prepare/set initial values.
  */
 const PaymentsForm = props => {
-    const { initialPaymentMethod, initialValues, paymentMethods, cancel, countries, submit, allowSame } = props;
+    const {
+        allowSame,
+        billingAddressSameAsShippingAddress,
+        cancel,
+        countries,
+        initialAddressSelectValue,
+        initialPaymentMethod,
+        initialValues,
+        onAddressSelectValueChange,
+        paymentMethods,
+        showAddressSelect,
+        showEmailInput,
+        showSaveInAddressBookCheckbox,
+        submit
+    } = props;
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [t] = useTranslation(['checkout', 'common']);
 
@@ -54,7 +67,7 @@ const PaymentsForm = props => {
     const [paymentMethod] = useState(initialPaymentMethodState);
 
     let initialFormValues;
-    if (allowSame && (!initialValues || initialValues.sameAsShippingAddress)) {
+    if (allowSame && billingAddressSameAsShippingAddress) {
         // If the addresses are the same, don't populate any fields
         // other than the checkbox with an initial value.
         initialFormValues = {
@@ -78,31 +91,22 @@ const PaymentsForm = props => {
             addresses_same: false,
             ...initialValues
         };
-        delete initialFormValues.sameAsShippingAddress;
     }
 
     const [differentAddress, setDifferentAddress] = useState(!initialFormValues.addresses_same);
 
     const handleSubmit = useCallback(
         formValues => {
-            console.log("handle payment form submit");
             setIsSubmitting(true);
             const sameAsShippingAddress = formValues['addresses_same'];
-            let billingAddress;
+            let billingAddress = {
+                sameAsShippingAddress
+            };
             if (!sameAsShippingAddress) {
                 billingAddress = {
-                    city: formValues['city'],
-                    email: formValues['email'],
-                    firstname: formValues['firstname'],
-                    lastname: formValues['lastname'],
-                    postcode: formValues['postcode'],
-                    region_code: formValues['region_code'].toUpperCase(),
-                    street: [formValues['street0']],
-                    telephone: formValues['telephone']
-                };
-            } else {
-                billingAddress = {
-                    sameAsShippingAddress
+                    ...billingAddress,
+                    ...formValues,
+                    street: [formValues.street0]
                 };
             }
             submit({
@@ -132,11 +136,13 @@ const PaymentsForm = props => {
                     <TextInput id={classes.lastname} field="lastname" validate={isRequired} />
                 </Field>
             </div>
-            <div className={classes.email}>
-                <Field label={t('checkout:address-email', 'E-Mail')}>
-                    <TextInput id={classes.email} field="email" validate={combine([isRequired, validateEmail])} />
-                </Field>
-            </div>
+            {showEmailInput && (
+                <div className={classes.email}>
+                    <Field label={t('checkout:address-email', 'E-Mail')}>
+                        <TextInput id={classes.email} field="email" validate={combine([isRequired, validateEmail])} />
+                    </Field>
+                </div>
+            )}
             <div className={classes.street0}>
                 <Field label={t('checkout:address-street', 'Street')}>
                     <TextInput id={classes.street0} field="street0" validate={isRequired} />
@@ -158,12 +164,12 @@ const PaymentsForm = props => {
             </div>
             <div className={classes.postcode}>
                 <Field label={t('checkout:address-postcode', 'ZIP')}>
-                    <TextInput id={classes.postcode} field="postcode" validate={combine([isRequired, validateZip])} />
+                    <TextInput id={classes.postcode} field="postcode" validate={isRequired} />
                 </Field>
             </div>
             <div className={classes.telephone}>
                 <Field label={t('checkout:address-phone', 'Phone')}>
-                    <TextInput id={classes.telephone} field="telephone" validate={combine([isRequired, validatePhoneUS])} />
+                    <TextInput id={classes.telephone} field="telephone" validate={isRequired} />
                 </Field>
             </div>
             <span ref={anchorRef} />
@@ -183,9 +189,8 @@ const PaymentsForm = props => {
         }
     }, [differentAddress]);
 
-    function secureData(formApi) {
+     function secureData(formApi) {
         var authData = {};
-        // TODO figure out better way to store... env variables?
         authData.clientKey = anetToken;
         authData.apiLoginID = anetApiId;
         var cardData = {};
@@ -253,6 +258,7 @@ const PaymentsForm = props => {
             Accept.dispatchData(data, response);
         })
     }
+
     function getCcType(ccNumber) {
         // the regular expressions check for possible matches as you type, hence the OR operators based on the number of chars
         // regexp string length {0} provided for soonest detection of beginning of the card numbers this way it could be used for BIN CODE detection also
@@ -295,7 +301,7 @@ const PaymentsForm = props => {
             if (ccNumber[0] == '5') { //started 5 must be mastercard
                 ccType = "MC";
             } else {
-                ccType = "MC"; //maestro is all 60-69 which is not something else, thats why this condition in the end, not in magento defaulting to MC 
+                ccType = "MC"; //maestro is all 60-69 which is not something else, thats why this condition in the end, not in magento defaulting to MC
             }
         }
 
@@ -312,37 +318,75 @@ const PaymentsForm = props => {
     };
 
     return (
-        <Form className={classes.root} initialValues={initialFormValues} onSubmit={handleSubmit} id="paymentForm">
-            <div className={classes.body}>
-                <h2 className={classes.heading}>Billing Information</h2>
-                <div className={classes.braintree}>
-                    <Select items={paymentMethodsItems} field="payment_method" initialValue={paymentMethod} />
-                </div>
-                <PaymentProvider />
-                <div className={classes.address_check}>
-                    {allowSame && (
-                        <Checkbox
-                            field="addresses_same"
-                            label={t('checkout:same-as-shipping', 'Billing address same as shipping address')}
-                            onClick={ev => {
-                                setDifferentAddress(!ev.target.checked);
-                            }}
-                        />
-                    )}
-                </div>
-                {billingAddressFields}
-            </div>
-            <div className={classes.footer}>
-                <Button onClick={cancel}>{t('common:cancel', 'Cancel')}</Button>
-                <ComponentUsingFieldApi />
-            </div>
+        <Form className={classes.root} initialValues={initialFormValues} onSubmit={handleSubmit}>
+            {({ formApi }) => (
+                <>
+                    <div className={classes.body}>
+                        <h2 className={classes.heading}>Billing Information</h2>
+                        <div className={classes.braintree}>
+                            <Select
+                                items={paymentMethodsItems}
+                                field="payment_method"
+                                initialValue={paymentMethod}
+                                onValueChange={() =>
+                                    formApi.getError('payment_nonce') && formApi.resetField('payment_nonce')
+                                }
+                            />
+                        </div>
+                        <PaymentProvider />
+                        <div className={classes.address_check}>
+                            {allowSame && (
+                                <Checkbox
+                                    field="addresses_same"
+                                    label={t('checkout:same-as-shipping', 'Billing address same as shipping address')}
+                                    onClick={ev => {
+                                        setDifferentAddress(!ev.target.checked);
+                                    }}
+                                />
+                            )}
+                        </div>
+                        {differentAddress && showAddressSelect && (
+                            <div className={classes.address_select}>
+                                <Field label={t('checkout:address-use-saved-address', 'Use Saved Address')}>
+                                    <AddressSelect
+                                        initialValue={initialAddressSelectValue}
+                                        onValueChange={value => onAddressSelectValueChange(value, formApi)}
+                                    />
+                                </Field>
+                            </div>
+                        )}
+                        {billingAddressFields}
+                        {differentAddress && showSaveInAddressBookCheckbox && (
+                            <div className={classes.save_in_address_book}>
+                                <Checkbox
+                                    id={classes.save_in_address_book}
+                                    label={t('checkout:address-save-in-address-book', 'Save in address book')}
+                                    field="save_in_address_book"
+                                />
+                            </div>
+                        )}
+                    </div>
+                    <div className={classes.footer}>
+                        <Button onClick={cancel}>{t('common:cancel', 'Cancel')}</Button>
+                        <ComponentUsingFieldApi />
+                    </div>
+                </>
+            )}
         </Form>
     );
 };
 
 PaymentsForm.propTypes = {
+    allowSame: bool,
+    billingAddressSameAsShippingAddress: bool,
+    cancel: func.isRequired,
     classes: shape({
         root: string
+    }),
+    countries: array,
+    initialAddressSelectValue: number,
+    initialPaymentMethod: shape({
+        code: string
     }),
     initialValues: shape({
         firstname: string,
@@ -351,22 +395,24 @@ PaymentsForm.propTypes = {
         city: string,
         postcode: string,
         region_code: string,
-        sameAsShippingAddress: bool,
         street0: string
     }),
-    allowSame: bool,
-    cancel: func.isRequired,
-    submit: func.isRequired,
-    initialPaymentMethod: shape({
-        code: string
-    }),
+    onAddressSelectValueChange: func,
     paymentMethods: array.isRequired,
-    countries: array
+    showAddressSelect: bool,
+    showEmailInput: bool,
+    showSaveInAddressBookCheckbox: bool,
+    submit: func.isRequired
 };
 
 PaymentsForm.defaultProps = {
+    allowSame: true,
+    billingAddressSameAsShippingAddress: true,
+    initialAddressSelectValue: null,
     initialValues: {},
-    allowSame: true
+    showAddressSelect: false,
+    showEmailInput: false,
+    showSaveInAddressBookCheckbox: false
 };
 
 export default PaymentsForm;

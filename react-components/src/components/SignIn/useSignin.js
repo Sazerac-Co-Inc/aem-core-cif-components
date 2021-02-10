@@ -13,10 +13,9 @@
  ******************************************************************************/
 import { useState } from 'react';
 import { useUserContext } from '../../context/UserContext';
-import { useMutation } from '@apollo/react-hooks';
+import { useMutation } from '@apollo/client';
 import { useCartState } from '../Minicart/cartContext';
 import { useAwaitQuery, useCookieValue } from '../../utils/hooks';
-import { sendEventToDataLayer } from '../../utils/dataLayer';
 import { mergeCarts } from '../../actions/cart';
 
 import MUTATION_MERGE_CARTS from '../../queries/mutation_merge_carts.graphql';
@@ -24,7 +23,8 @@ import QUERY_CUSTOMER_CART from '../../queries/query_customer_cart.graphql';
 import MUTATION_GENERATE_TOKEN from '../../queries/mutation_generate_token.graphql';
 import QUERY_CART_DETAILS from '../../queries/query_cart_details.graphql';
 
-export const useSignin = () => {
+export const useSignin = props => {
+    const { showMyAccount } = props;
     const [{ cartId }, cartDispatch] = useCartState();
     const [userState, { setToken, getUserDetails, setCustomerCart, setError }] = useUserContext();
     const [inProgress, setInProgress] = useState(false);
@@ -40,6 +40,10 @@ export const useSignin = () => {
     if (userState.signInError && userState.signInError.length > 0) {
         errorMessage = userState.signInError;
     }
+
+    const refreshPage = () => {
+        window.location.reload();
+    };
 
     const handleSubmit = async ({ email, password }) => {
         setInProgress(true);
@@ -74,17 +78,16 @@ export const useSignin = () => {
             //4. set the cart id in the cookie
             setCartCookie(mergedCartId);
             setCustomerCart(mergedCartId);
-            //5. event for datalayer
-            const signInEvent = new CustomEvent('sazerac.cif.sign-in', {
-                bubbles: true,
-                detail: { event: 'sazerac.cif.sign-in', userId: email }
-            });
-            document.dispatchEvent(signInEvent);
+
+            //5. show my account view in account dropdown or navigation side panel after sign in
+            showMyAccount();
+
+            //6. simple refresh(current page)
+            refreshPage();
         } catch (e) {
             setError(e);
-            sendEventToDataLayer({ event: 'sazerac.cif.sign-in-error', error: e });
+            setInProgress(false);
         }
-        setInProgress(false);
     };
 
     return {

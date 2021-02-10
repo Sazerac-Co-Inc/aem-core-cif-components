@@ -21,6 +21,7 @@ export default ({ queries }) => {
         addToCartMutation,
         cartDetailsQuery,
         addVirtualItemMutation,
+        addBundleItemMutation,
         addSimpleAndVirtualItemMutation,
         addConfigurableItemMutation
     } = queries;
@@ -38,16 +39,25 @@ export default ({ queries }) => {
         if (!event.detail) return;
 
         const mapper = item => {
+            let quantity = parseFloat(item.quantity);
             return {
                 data: {
                     sku: item.sku,
-                    quantity: item.quantity
+                    quantity
                 }
+            };
+        };
+
+        const bundleMapper = item => {
+            return {
+                ...mapper(item),
+                bundle_options: item.options
             };
         };
 
         let physicalCartItems = event.detail.filter(item => !item.virtual).map(mapper);
         let virtualCartItems = event.detail.filter(item => item.virtual).map(mapper);
+        let bundleCartItems = event.detail.filter(item => item.bundle).map(bundleMapper);
         let parentSkuEl = document.getElementById('parentSku');
         let configurableCartItem = null;
 
@@ -71,12 +81,15 @@ export default ({ queries }) => {
 
             }
         }
+
         dispatch({ type: 'open' });
         dispatch({ type: 'beginLoading' });
 
         let addItemFn = addToCartMutation;
-        if (parentSkuEl && physicalCartItems.length > 0 && physicalCartItems.length < 2) {
-            addItemFn = addConfigurableItemMutation;
+        if (bundleCartItems.length > 0) {
+            addItemFn = addBundleItemMutation;
+        } else if (parentSkuEl && physicalCartItems.length > 0 && physicalCartItems.length < 2) {
+             addItemFn = addConfigurableItemMutation;
         } else if (physicalCartItems.length > 0 && virtualCartItems.length > 0) {
             addItemFn = addSimpleAndVirtualItemMutation;
         } else if (virtualCartItems.length > 0) {
@@ -92,6 +105,7 @@ export default ({ queries }) => {
             dispatch,
             physicalCartItems,
             virtualCartItems,
+            bundleCartItems,
             configurableCartItem
         });
         dispatch({ type: 'endLoading' });

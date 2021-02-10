@@ -13,6 +13,9 @@
  ******************************************************************************/
 'use strict';
 
+const dataLayerEnabled = document.body.hasAttribute('data-cmp-data-layer-enabled');
+const dataLayer = dataLayerEnabled ? (window.adobeDataLayer = window.adobeDataLayer || []) : undefined;
+
 /**
  * Add to cart button component.
  */
@@ -41,6 +44,7 @@ class AddToCart {
             this._element.disabled = true;
         }
 
+        // Sagepath custom code
         // Disable add to cart if alcohol product
         if (this._state.alcohol) {
             this._element.disabled = true;
@@ -60,26 +64,10 @@ class AddToCart {
         // Add click handler to add to cart button
         this._element.addEventListener('click', this._onAddToCart.bind(this));
 
-
+        // Sagepath custom code
         // Listen to alcohol checkbox updates on product
         config.product.addEventListener(AddToCart.events.alcoholBoxChecked, this._onAlcoholChecked.bind(this));
-
-
     }
-
-    /**
-     *  Alcohol checkbox changed event handler
-     */
-     _onAlcoholChecked(event) {
-        if (event.detail.checked) {
-            this._element.disabled = false;
-            return;
-        } else {
-            this._element.disabled = true;
-            return;
-        }
-     }
-
 
     /**
      * Variant changed event handler.
@@ -95,6 +83,7 @@ class AddToCart {
 
         // Update sku attribute in select element
         document.querySelector(AddToCart.selectors.quantity).setAttribute('data-product-sku', variant.sku);
+        document.querySelector(AddToCart.selectors.quantity).setAttribute('data-product-id', variant.id);
 
         // Update internal state
         this._state.sku = variant.sku;
@@ -117,7 +106,10 @@ class AddToCart {
         // To support grouped products where multiple products can be put in the cart in one single click,
         // the sku of each product is now read from the 'data-product-sku' attribute of each select element
 
-        const selections = Array.from(document.querySelectorAll(AddToCart.selectors.quantity));
+        const selections = Array.from(document.querySelectorAll(AddToCart.selectors.quantity)).filter(selection => {
+            return parseInt(selection.value) > 0;
+        });
+        // Sagepath custom code
         let confOptions = [];
         let attrElements = document.querySelectorAll('.option__root');
         var i;
@@ -126,24 +118,34 @@ class AddToCart {
             let selectedOption = attrElements[i].querySelector('.tile__root_selected span').innerHTML;
             confOptions.push([attID, selectedOption]);
         }
-        let items = selections
-            .filter(selection => {
-                return parseInt(selection.value) > 0;
-            })
-            .map(selection => {
-                return {
-                    sku: selection.dataset.productSku,
-                    virtual: this._state.grouped ? selection.dataset.virtual !== undefined : this._state.virtual,
-                    quantity: selection.value,
-                    configurableOptions: confOptions
-                };
-            });
+        let items = selections.map(selection => {
+            return {
+                sku: selection.dataset.productSku,
+                virtual: this._state.grouped ? selection.dataset.virtual !== undefined : this._state.virtual,
+                quantity: selection.value,
+                configurableOptions: confOptions
+            };
+        });
 
         if (items.length > 0 && window.CIF) {
             const customEvent = new CustomEvent(AddToCart.events.addToCart, {
-                detail: items,
+                detail: items
             });
             document.dispatchEvent(customEvent);
+
+            if (dataLayerEnabled) {
+                selections.forEach(function(selection) {
+                    // https://github.com/adobe/xdm/blob/master/docs/reference/datatypes/productlistitem.schema.md
+                    dataLayer.push({
+                        event: 'cif:addToCart',
+                        eventInfo: {
+                            '@id': selection.dataset.productId,
+                            'xdm:SKU': selection.dataset.productSku,
+                            'xdm:quantity': parseInt(selection.value)
+                        }
+                    });
+                });
+            }
         }
     }
 }

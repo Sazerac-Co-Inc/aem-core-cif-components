@@ -143,7 +143,8 @@ class VariantSelector {
         return null;
     }
 
-    // Sagepath addition to disable add to cart button when a variant is out of stock
+    // Sagepath custom code
+    // disable add to cart button when a variant is out of stock
     _disableAddToCart() {
         const addToCartButton = document.querySelector(".productFullDetail__cartActions button");
         // if variant available check that it is in stock
@@ -156,10 +157,10 @@ class VariantSelector {
                   addToCartButton.firstElementChild.innerText = "Add to Cart";
                 }
         }
-        // if multiple attributes (will use this until a purchasable combination of attributes is selected)
-//        else if (this._state.variants) {
-//            continue;
-//        }
+                // if multiple attributes (will use this until a purchasable combination of attributes is selected)
+        //        else if (this._state.variants) {
+        //            continue;
+        //        }
 
     }
 
@@ -189,6 +190,7 @@ class VariantSelector {
             this._setHash(this._state.variant.sku);
         }
         this._disableAddToCart();
+
         // Don't reload page on click
         event.preventDefault();
     }

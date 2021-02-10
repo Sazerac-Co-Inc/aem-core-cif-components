@@ -12,7 +12,6 @@
  *
  ******************************************************************************/
 import React from 'react';
-import { List } from '@magento/peregrine';
 import { array, shape, string } from 'prop-types';
 
 import Product from './product';
@@ -41,14 +40,11 @@ const ProductList = props => {
                         <h4 className={classes.headerTitle}>Shipping</h4>
                         <span>{normalProductsCount} {normalProductsCount > 1 ? 'items' : 'item'}</span>
                     </div>
-                    <List
-                        classes={classes}
-                        render="ul"
-                        items={normalProducts}
-                        getItemKey={item => item.id}
-                        renderItem={itemProps => {
-                            return <Product item={itemProps.item} />;
-                        }}></List>
+                     <ul className={classes}>
+                        {normalProducts.map(item => (
+                            <Product key={item.id} item={item} />
+                        ))}
+                    </ul>
                 </div>
             }
 
@@ -58,14 +54,11 @@ const ProductList = props => {
                         <h4 className={classes.headerTitle}>Curbside Pick-up</h4>
                         <span>{alcoholProductsCount} {alcoholProductsCount > 1 ? 'items' : 'item'}</span>
                     </div>
-                    <List
-                        classes={classes}
-                        render="ul"
-                        items={alcoholProducts}
-                        getItemKey={item => item.id}
-                        renderItem={itemProps => {
-                            return <Product item={itemProps.item} />;
-                        }}></List>
+                     <ul className={classes}>
+                        {alcoholProducts.map(item => (
+                            <Product key={item.id} item={item} />
+                        ))}
+                    </ul>
                 </div>
             }
         </div>

@@ -11,26 +11,44 @@
  *    governing permissions and limitations under the License.
  *
  ******************************************************************************/
-import { useMutation } from '@apollo/react-hooks';
+import { useMutation } from '@apollo/client';
 import { useState } from 'react';
 
 import MUTATION_PLACE_ORDER from '../../queries/mutation_place_order.graphql';
 import QUERY_CUSTOMER_CART from '../../queries/query_customer_cart.graphql';
 
+import { useAddressForm } from '../AddressForm/useAddressForm';
 import { useAwaitQuery } from '../../utils/hooks';
-import { sendEventToDataLayer } from '../../utils/dataLayer';
 import { useCartState } from '../Minicart/cartContext';
 import { useCheckoutState } from './checkoutContext';
 import { useUserContext } from '../../context/UserContext';
 
 export default () => {
-    const [{ shippingAddress, shippingMethod, paymentMethod }, checkoutDispatch] = useCheckoutState();
+    const [
+        { shippingAddress, billingAddress, billingAddressSameAsShippingAddress, shippingMethod, paymentMethod },
+        checkoutDispatch
+    ] = useCheckoutState();
     const [{ cart, cartId }, cartDispatch] = useCartState();
     const [{ isSignedIn }, { resetCustomerCart }] = useUserContext();
     const fetchCustomerCartQuery = useAwaitQuery(QUERY_CUSTOMER_CART);
+    const { findSavedAddress } = useAddressForm();
 
     const [placeOrder] = useMutation(MUTATION_PLACE_ORDER);
     const [inProgress, setInProgress] = useState(false);
+
+    const editShippingAddress = address => {
+        if (!findSavedAddress(address)) {
+            checkoutDispatch({ type: 'setIsEditingNewAddress', editing: true });
+        }
+        checkoutDispatch({ type: 'setEditing', editing: 'address' });
+    };
+
+    const editBillingInformation = address => {
+        if (!findSavedAddress(address) || billingAddressSameAsShippingAddress) {
+            checkoutDispatch({ type: 'setIsEditingNewAddress', editing: true });
+        }
+        checkoutDispatch({ type: 'setEditing', editing: 'paymentMethod' });
+    };
 
     const submitOrder = async () => {
         setInProgress(true);
@@ -39,13 +57,13 @@ export default () => {
         try {
             const { data } = await placeOrder({ variables: { cartId } });
             checkoutDispatch({ type: 'placeOrder', order: data.placeOrder.order });
-            sendEventToDataLayer({ event: 'sazerac.cif.place-order', cart: data });
+
             // if user is signed in reset the cart
             if (isSignedIn) {
                 resetCustomerCart(fetchCustomerCartQuery);
             }
             cartDispatch({ type: 'reset' });
-
+            return data;
         } catch (error) {
             console.error(error);
             cartDispatch({ type: 'error', error: error.toString() });
@@ -55,7 +73,7 @@ export default () => {
     };
 
     return [
-        { shippingAddress, shippingMethod, paymentMethod, inProgress, cart },
-        { placeOrder: submitOrder, checkoutDispatch }
+        { shippingAddress, billingAddress, shippingMethod, paymentMethod, inProgress, cart },
+        { editShippingAddress, editBillingInformation, placeOrder: submitOrder, checkoutDispatch }
     ];
 };

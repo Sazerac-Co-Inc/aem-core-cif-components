@@ -26,8 +26,6 @@ const ancestors = {
     MY_ACCOUNT: 'MENU',
     CHANGE_PASSWORD: 'MY_ACCOUNT',
     SIGN_IN: 'MENU',
-    UPDATE_BILLING_ADDRESS: 'MY_ACCOUNT',
-    UPDATE_SHIPPING_ADDRESS: 'MY_ACCOUNT',
     ORDER_HISTORY: 'MY_ACCOUNT',
     MENU: null
 };
@@ -60,13 +58,9 @@ const NavigationContextProvider = props => {
 
     const showSignIn = () => NavigationActions.showSignIn({ dispatch, t });
 
-    const showMenu = () => NavigationActions.showMenu({ dispatch, t });
+    const showMenu = () => NavigationActions.showMenu({ dispatch });
 
     const showMyAccount = () => NavigationActions.showMyAccount({ dispatch, t });
-
-    const showUpdateCustomerBillingAddress = () => NavigationActions.showUpdateCustomerBillingAddress({ dispatch, t });
-
-    const showUpdateCustomerShippingAddress = () => NavigationActions.showUpdateCustomerShippingAddress({ dispatch, t });
 
     const showOrderHistory = () => NavigationActions.showOrderHistory({ dispatch, t });
 
@@ -77,6 +71,8 @@ const NavigationContextProvider = props => {
     const showCreateAccount = () => NavigationActions.showCreateAccount({ dispatch, t });
 
     const showAccountCreated = () => NavigationActions.showAccountCreated({ dispatch, t });
+
+    const showView = view => NavigationActions.showView({ dispatch, t, view });
 
     const handleBack = useCallback(() => {
         if (navigationState.view === null) {
@@ -93,7 +89,9 @@ const NavigationContextProvider = props => {
             showMyAccount();
             return;
         }
-        dispatch({ type: 'changeView', view: parent });
+        if (parent) {
+            showView(parent);
+        }
     }, [view]);
 
     useEventListener(document, 'aem.navigation.back', handleBack);
@@ -106,8 +104,6 @@ const NavigationContextProvider = props => {
             showSignIn,
             showMenu,
             showMyAccount,
-            showUpdateCustomerBillingAddress,
-            showUpdateCustomerShippingAddress,
             showOrderHistory,
             showChangePassword,
             showForgotPassword,
